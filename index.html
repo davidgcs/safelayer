@@ -18,10 +18,10 @@ input[type=text],input[type=range]{padding:9px;border:1px solid #cbd5e1;border-r
 .workspace{margin-top:18px;display:grid;grid-template-columns:1fr 270px;gap:18px}
 #pages{display:flex;flex-direction:column;gap:18px;align-items:center;min-height:300px}
 .page{position:relative;background:#e5e7eb;box-shadow:0 4px 18px #0002;max-width:100%;overflow:auto}
-.page canvas{display:block;max-width:100%;height:auto}
+.page canvas{display:block;max-width:100%;height:auto}.page.grayscale canvas{filter:grayscale(1)}
 .overlay{position:absolute;inset:0;cursor:crosshair}
 .redaction{position:absolute;background:#000;border:1px solid #111;cursor:move}
-.watermark-preview{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-28deg);font-size:42px;font-weight:900;color:#b42318;opacity:.25;white-space:nowrap;pointer-events:none}
+.watermark-preview{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.22}.watermark-preview span{position:absolute;display:block;white-space:nowrap;font-size:34px;font-weight:900;color:#b42318;transform:rotate(-28deg);transform-origin:center center}
 .empty{padding:80px 20px;text-align:center;color:#64748b}
 .side h3{margin-top:0}.side p{font-size:13px;line-height:1.5}.status{margin-top:12px;font-size:13px;color:#475569}
 .progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:8px}.bar{height:100%;width:0;background:#172033}
@@ -53,9 +53,9 @@ input[type=text],input[type=range]{padding:9px;border:1px solid #cbd5e1;border-r
   <aside class="card side">
     <h3>Cómo usarlo</h3>
     <p>1. Sube un JPG, PNG, WebP o PDF.</p>
-    <p>2. Activa escala de grises y/o marca de agua.</p>
+    <p>2. Activa escala de grises y/o escribe una marca de agua personalizada y activa el patrón diagonal.</p>
     <p>3. En cada página, arrastra para crear tachados negros sobre DNI, número, firma, dirección u otros datos.</p>
-    <p>4. Pulsa <b>Guardar y descargar</b>.</p>
+    <p>4. Pulsa <b>Guardar y descargar</b>. La marca se repetirá diagonalmente por toda la página.</p>
     <p><b>Privacidad:</b> el archivo se procesa en el navegador. No se envía a un servidor en esta versión.</p>
     <p><b>Nota:</b> la redacción se rasteriza en el PDF de salida, por lo que los datos cubiertos no quedan como texto seleccionable.</p>
   </aside>
@@ -97,7 +97,7 @@ $("file").addEventListener("change", async e=>{
       }
     }else if(f.type.startsWith("image/")){
       kind="image";
-      const img=new Image(); img.src=URL.createObjectURL(f);
+      const objectUrl=URL.createObjectURL(f); const img=new Image(); img.src=objectUrl;
       await img.decode();
       const c=document.createElement("canvas"); c.width=img.naturalWidth;c.height=img.naturalHeight;
       c.getContext("2d").drawImage(img,0,0);
@@ -112,7 +112,7 @@ function addPage(canvas){
   const page={canvas, rects:[]}; pages.push(page);
   const wrap=document.createElement("div"); wrap.className="page"; wrap.dataset.index=pages.length-1;
   const overlay=document.createElement("div"); overlay.className="overlay";
-  wrap.appendChild(canvas); wrap.appendChild(overlay); $("pages").appendChild(wrap);
+  wrap.appendChild(canvas); wrap.appendChild(overlay); $("pages").appendChild(wrap); if(gray) wrap.classList.add("grayscale");
   enableDrawing(wrap,overlay,page);
 }
 
@@ -136,30 +136,110 @@ function enableDrawing(wrap,overlay,page){
   });
 }
 
-$("gray").onclick=()=>{gray=!gray; $("gray").textContent=gray?"Quitar escala de grises":"Escala de grises";};
-$("watermark").onclick=()=>{wm=!wm;$("watermark").textContent=wm?"Quitar marca de agua":"Marca de agua";renderWM()};
+$("gray").onclick=()=>{
+  gray=!gray;
+  $("gray").textContent=gray?"Quitar escala de grises":"Escala de grises";
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("grayscale",gray));
+};
+
+$("watermark").onclick=()=>{
+  wm=!wm;
+  $("watermark").textContent=wm?"Quitar marca de agua":"Marca de agua";
+  renderWM();
+};
+
 function renderWM(){
   document.querySelectorAll(".watermark-preview").forEach(x=>x.remove());
-  if(wm) document.querySelectorAll(".page").forEach(p=>{const d=document.createElement("div");d.className="watermark-preview";d.textContent=$("wm").value||"COPIA SANITIZADA";p.appendChild(d)});
+  if(!wm) return;
+
+  const text=($("wm").value||"COPIA SANITIZADA").trim() || "COPIA SANITIZADA";
+  document.querySelectorAll(".page").forEach(page=>{
+    const layer=document.createElement("div");
+    layer.className="watermark-preview";
+    const width=page.clientWidth || page.offsetWidth || 800;
+    const height=page.clientHeight || page.offsetHeight || 500;
+    const rowStep=82;
+    const colStep=Math.max(180, Math.min(330, width/3));
+
+    let row=0;
+    for(let y=-100;y<height+120;y+=rowStep,row++){
+      const offset=(row%2===0)?0:colStep/2;
+      for(let x=-width;x<width*2;x+=colStep){
+        const span=document.createElement("span");
+        span.textContent=text;
+        span.style.left=(x+offset)+"px";
+        span.style.top=y+"px";
+        layer.appendChild(span);
+      }
+    }
+    page.appendChild(layer);
+  });
 }
-$("wm").addEventListener("input",renderWM);
+
+$("wm").addEventListener("input",()=>{ if(wm) renderWM(); });
+
 $("clear").onclick=()=>{pages.forEach(p=>p.rects=[]);document.querySelectorAll(".redaction").forEach(x=>x.remove())};
 
 function sanitizedCanvas(page){
-  const src=page.canvas, out=document.createElement("canvas");out.width=src.width;out.height=src.height;
-  const ctx=out.getContext("2d");ctx.drawImage(src,0,0);
+  const src=page.canvas;
+  const out=document.createElement("canvas");
+  out.width=src.width;
+  out.height=src.height;
+  const ctx=out.getContext("2d", {willReadFrequently:true});
+
+  ctx.fillStyle="#fff";
+  ctx.fillRect(0,0,out.width,out.height);
+  ctx.drawImage(src,0,0);
+
+  // Apply grayscale to the actual output pixels.
   if(gray){
-    const d=ctx.getImageData(0,0,out.width,out.height), a=d.data;
-    for(let i=0;i<a.length;i+=4){const y=.299*a[i]+.587*a[i+1]+.114*a[i+2];a[i]=a[i+1]=a[i+2]=y}
+    const d=ctx.getImageData(0,0,out.width,out.height);
+    const a=d.data;
+    for(let i=0;i<a.length;i+=4){
+      const y=Math.round(0.2126*a[i]+0.7152*a[i+1]+0.0722*a[i+2]);
+      a[i]=y; a[i+1]=y; a[i+2]=y;
+    }
     ctx.putImageData(d,0,0);
   }
+
+  // Permanent redaction directly in the exported raster.
   ctx.fillStyle="#000";
-  page.rects.forEach(r=>ctx.fillRect(r.x*out.width,r.y*out.height,r.w*out.width,r.h*out.height));
+  page.rects.forEach(r=>{
+    ctx.fillRect(
+      Math.round(r.x*out.width),
+      Math.round(r.y*out.height),
+      Math.round(r.w*out.width),
+      Math.round(r.h*out.height)
+    );
+  });
+
+  // Repeated diagonal watermark across the complete page.
   if(wm){
-    ctx.save();ctx.translate(out.width/2,out.height/2);ctx.rotate(-Math.PI/7);
-    ctx.font="900 "+Math.max(24,out.width/18)+"px system-ui";ctx.textAlign="center";ctx.fillStyle="rgba(180,35,24,.28)";
-    ctx.fillText($("wm").value||"COPIA SANITIZADA",0,0);ctx.restore();
+    const text=($("wm").value||"COPIA SANITIZADA").trim() || "COPIA SANITIZADA";
+    ctx.save();
+    ctx.translate(out.width/2,out.height/2);
+    ctx.rotate(-28*Math.PI/180);
+
+    const fontSize=Math.max(28, Math.min(72, out.width/18));
+    ctx.font=`900 ${fontSize}px system-ui, -apple-system, Segoe UI, sans-serif`;
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillStyle=gray ? "rgba(130,130,130,.30)" : "rgba(180,35,24,.30)";
+
+    const diagonal=Math.ceil(Math.sqrt(out.width*out.width+out.height*out.height));
+    const rowStep=Math.max(fontSize*2.2, 90);
+    const colStep=Math.max(fontSize*7, 320);
+
+    for(let y=-diagonal;y<=diagonal;y+=rowStep){
+      const row=Math.round((y+diagonal)/rowStep);
+      const offset=(row%2===0)?0:colStep/2;
+      for(let x=-diagonal*1.5;x<=diagonal*1.5;x+=colStep){
+        ctx.fillText(text, x+offset, y);
+      }
+    }
+    ctx.restore();
   }
+
   return out;
 }
 
