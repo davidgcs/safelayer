@@ -7,7 +7,8 @@ they are shared for government, official, or professional procedures.
 
 - English and Spanish interface.
 - Permanent black redactions in exported files.
-- Optional grayscale output.
+- Grayscale and the localized `copy`/`copia` watermark are enabled automatically.
+- Adjustable watermark weight with a slider.
 - Repeating wave-shaped watermark with consistent spacing for text of any length.
 - Local browser processing; this version does not upload documents to a server.
 

@@ -36,40 +36,61 @@
 
       <section class="card controls-card" aria-label="Document controls" data-i18n-aria-label="CONTROLS_LABEL">
         <div class="toolbar">
-          <label class="button file-button">
-            <span data-i18n="OPEN_FILE">Open file</span>
-            <input
-              id="file"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-            >
-          </label>
+          <div class="toolbar-row document-controls">
+            <label class="button file-button">
+              <span data-i18n="OPEN_FILE">Open file</span>
+              <input
+                id="file"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+              >
+            </label>
 
-          <button id="gray" class="button secondary" type="button" aria-pressed="false">
-            Grayscale
-          </button>
+            <button id="gray" class="button secondary" type="button" aria-pressed="true">
+              Remove grayscale
+            </button>
+            <button id="watermark" class="button" type="button" aria-pressed="true">
+              Remove watermark
+            </button>
+          </div>
 
-          <label class="watermark-field">
-            <span class="sr-only" data-i18n="WATERMARK_INPUT_LABEL">Watermark text</span>
-            <input
-              id="wm"
-              type="text"
-              value="SANITIZED COPY"
-              aria-label="Watermark text"
-              data-i18n-aria-label="WATERMARK_INPUT_LABEL"
-              autocomplete="off"
-            >
-          </label>
+          <div class="toolbar-row watermark-settings">
+            <label class="watermark-field">
+              <span class="field-label" data-i18n="WATERMARK_INPUT_LABEL">Watermark text</span>
+              <input
+                id="wm"
+                type="text"
+                value="copy"
+                aria-label="Watermark text"
+                data-i18n-aria-label="WATERMARK_INPUT_LABEL"
+                autocomplete="off"
+              >
+            </label>
 
-          <button id="watermark" class="button" type="button" aria-pressed="false">
-            Add watermark
-          </button>
-          <button id="clear" class="button secondary" type="button" data-i18n="CLEAR_REDACTIONS">
-            Clear redactions
-          </button>
-          <button id="save" class="button" type="button" data-i18n="SAVE_DOWNLOAD">
-            Save and download
-          </button>
+            <label class="watermark-weight-field">
+              <span class="field-label" data-i18n="WATERMARK_WEIGHT_LABEL">Watermark weight</span>
+              <input
+                id="wm-weight"
+                type="range"
+                min="300"
+                max="900"
+                step="100"
+                value="800"
+                aria-label="Watermark weight"
+                data-i18n-aria-label="WATERMARK_WEIGHT_LABEL"
+              >
+              <output id="wm-weight-value" for="wm-weight">800</output>
+            </label>
+          </div>
+
+          <div class="toolbar-row final-actions">
+            <button id="clear" class="button secondary" type="button" data-i18n="CLEAR_REDACTIONS">
+              Clear redactions
+            </button>
+            <button id="save" class="button" type="button" data-i18n="SAVE_DOWNLOAD">
+              Save and download
+            </button>
+          </div>
         </div>
 
         <p class="status" id="status" aria-live="polite">

@@ -19,6 +19,7 @@
       GRAYSCALE_ADD: "Grayscale",
       GRAYSCALE_REMOVE: "Remove grayscale",
       WATERMARK_INPUT_LABEL: "Watermark text",
+      WATERMARK_WEIGHT_LABEL: "Watermark weight",
       WATERMARK_ADD: "Add watermark",
       WATERMARK_REMOVE: "Remove watermark",
       CLEAR_REDACTIONS: "Clear redactions",
@@ -34,7 +35,7 @@
       PRIVACY_TEXT: "your file is processed in this browser and is not sent to a server by this version.",
       NOTE_LABEL: "Note:",
       NOTE_TEXT: "redactions are rasterized in exported PDFs, so covered data does not remain selectable text.",
-      DEFAULT_WATERMARK: "SANITIZED COPY",
+      DEFAULT_WATERMARK: "copy",
       LOADING: "Loading…",
       PDF_ENGINE_ERROR: "The PDF engine could not be loaded. Check your connection.",
       UNSUPPORTED_FORMAT: "Unsupported file format.",
@@ -59,6 +60,7 @@
       GRAYSCALE_ADD: "Escala de grises",
       GRAYSCALE_REMOVE: "Quitar escala de grises",
       WATERMARK_INPUT_LABEL: "Texto de la marca de agua",
+      WATERMARK_WEIGHT_LABEL: "Grosor de la marca",
       WATERMARK_ADD: "Añadir marca de agua",
       WATERMARK_REMOVE: "Quitar marca de agua",
       CLEAR_REDACTIONS: "Borrar tachados",
@@ -74,7 +76,7 @@
       PRIVACY_TEXT: "el archivo se procesa en este navegador y no se envía a un servidor en esta versión.",
       NOTE_LABEL: "Nota:",
       NOTE_TEXT: "los tachados se rasterizan en el PDF exportado, por lo que los datos cubiertos no quedan como texto seleccionable.",
-      DEFAULT_WATERMARK: "COPIA SANITIZADA",
+      DEFAULT_WATERMARK: "copia",
       LOADING: "Cargando…",
       PDF_ENGINE_ERROR: "No se pudo cargar el motor PDF. Comprueba tu conexión.",
       UNSUPPORTED_FORMAT: "Formato de archivo no compatible.",
@@ -102,18 +104,20 @@
     save: document.querySelector("#save"),
     status: document.querySelector("#status"),
     watermark: document.querySelector("#watermark"),
-    watermarkText: document.querySelector("#wm")
+    watermarkText: document.querySelector("#wm"),
+    watermarkWeight: document.querySelector("#wm-weight"),
+    watermarkWeightValue: document.querySelector("#wm-weight-value")
   };
 
   const state = {
-    grayscale: false,
+    grayscale: true,
     kind: null,
     language: "en",
     originalFile: null,
     pages: [],
     processing: false,
     status: {key: "INITIAL_STATUS", params: {}},
-    watermark: false,
+    watermark: true,
     watermarkFrame: null
   };
 
@@ -189,6 +193,7 @@
     elements.file.disabled = isBusy;
     elements.gray.disabled = isBusy;
     elements.watermarkText.disabled = isBusy;
+    elements.watermarkWeight.disabled = isBusy;
     elements.watermark.disabled = isBusy;
     elements.clear.disabled = isBusy;
     elements.save.disabled = isBusy;
@@ -201,6 +206,10 @@
     elements.watermark.setAttribute("aria-pressed", String(state.watermark));
   }
 
+  function updateWatermarkWeight() {
+    elements.watermarkWeightValue.textContent = elements.watermarkWeight.value;
+  }
+
   function showEmptyState(translationKey) {
     const empty = document.createElement("div");
     empty.className = "empty";
@@ -211,8 +220,8 @@
 
   function resetDocument() {
     state.pages = [];
-    state.grayscale = false;
-    state.watermark = false;
+    state.grayscale = true;
+    state.watermark = true;
     elements.pages.replaceChildren();
     updateToggleLabels();
   }
@@ -263,10 +272,12 @@
         throw new Error(translate("UNSUPPORTED_FORMAT"));
       }
 
+      if (state.watermark) renderWatermarks();
       setProgress(1);
       setStatus("DOCUMENT_LOADED");
     } catch (error) {
       console.error(error);
+      state.pages = [];
       showEmptyState("OPEN_ERROR_EMPTY");
       setProgress(0);
       setStatus("OPEN_ERROR", {detail: error.message});
@@ -326,6 +337,7 @@
     overlay.className = "overlay";
 
     const page = {canvas, overlay, rects: [], wrapper};
+    wrapper.classList.toggle("grayscale", state.grayscale);
     wrapper.append(canvas, overlay);
     elements.pages.append(wrapper);
     state.pages.push(page);
@@ -460,6 +472,7 @@
 
   function drawWatermarkPattern(context, width, height) {
     const text = getWatermarkText();
+    const fontWeight = Number(elements.watermarkWeight.value) || 800;
     const fontSize = Math.max(28, Math.min(72, width / 18));
     const letterSpacing = Math.max(0.5, fontSize * 0.015);
     const amplitude = fontSize * 0.42;
@@ -471,7 +484,7 @@
     context.save();
     context.translate(width / 2, height / 2);
     context.rotate(WATERMARK_ANGLE);
-    context.font = `900 ${fontSize}px ${WATERMARK_FONT}`;
+    context.font = `${fontWeight} ${fontSize}px ${WATERMARK_FONT}`;
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillStyle = state.grayscale ? "rgba(110, 110, 110, 0.3)" : "rgba(180, 35, 24, 0.3)";
@@ -660,9 +673,14 @@
   elements.watermarkText.addEventListener("input", () => {
     if (state.watermark) scheduleWatermarkRender();
   });
+  elements.watermarkWeight.addEventListener("input", () => {
+    updateWatermarkWeight();
+    if (state.watermark) scheduleWatermarkRender();
+  });
   elements.clear.addEventListener("click", clearRedactions);
   elements.save.addEventListener("click", saveDocument);
   elements.language.addEventListener("change", (event) => applyLanguage(event.target.value));
 
+  updateWatermarkWeight();
   applyLanguage(getInitialLanguage());
 })();
