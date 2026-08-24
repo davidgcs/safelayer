@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Safe Layer — Sanitizador de documentos</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f5f7fb}
+*{box-sizing:border-box}body{margin:0}.app{max-width:1180px;margin:auto;padding:24px}
+header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px}
+h1{margin:0;font-size:25px} .muted{color:#64748b;font-size:14px}
+.card{background:white;border:1px solid #dbe2ea;border-radius:16px;padding:18px;box-shadow:0 5px 20px #1720330d}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.toolbar label{font-size:14px}
+button,.file-label{border:0;border-radius:10px;padding:10px 14px;font-weight:650;cursor:pointer;background:#172033;color:#fff}
+button.secondary{background:#e8edf4;color:#172033}button.danger{background:#b42318}
+input[type=file]{display:none}.file-label{display:inline-block}
+input[type=text],input[type=range]{padding:9px;border:1px solid #cbd5e1;border-radius:9px}
+.workspace{margin-top:18px;display:grid;grid-template-columns:1fr 270px;gap:18px}
+#pages{display:flex;flex-direction:column;gap:18px;align-items:center;min-height:300px}
+.page{position:relative;background:#e5e7eb;box-shadow:0 4px 18px #0002;max-width:100%;overflow:auto}
+.page canvas{display:block;max-width:100%;height:auto}
+.overlay{position:absolute;inset:0;cursor:crosshair}
+.redaction{position:absolute;background:#000;border:1px solid #111;cursor:move}
+.watermark-preview{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-28deg);font-size:42px;font-weight:900;color:#b42318;opacity:.25;white-space:nowrap;pointer-events:none}
+.empty{padding:80px 20px;text-align:center;color:#64748b}
+.side h3{margin-top:0}.side p{font-size:13px;line-height:1.5}.status{margin-top:12px;font-size:13px;color:#475569}
+.progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:8px}.bar{height:100%;width:0;background:#172033}
+@media(max-width:850px){.workspace{grid-template-columns:1fr}.side{order:-1}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Safe Layer</h1><div class="muted">Sanitización local de imágenes y PDF para compartir documentos con menor riesgo.</div></div>
+  <div class="muted">Procesamiento en tu navegador</div>
+</header>
+
+<div class="card">
+  <div class="toolbar">
+    <label class="file-label">Abrir archivo<input id="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></label>
+    <button id="gray" class="secondary">Escala de grises</button>
+    <input id="wm" type="text" value="COPIA SANITIZADA" aria-label="Marca de agua">
+    <button id="watermark">Marca de agua</button>
+    <button id="clear" class="secondary">Borrar tachados</button>
+    <button id="save">Guardar y descargar</button>
+  </div>
+  <div class="status" id="status">Selecciona una imagen o PDF. Después, arrastra rectángulos negros sobre los datos que quieras ocultar.</div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+</div>
+
+<div class="workspace">
+  <main class="card"><div id="pages"><div class="empty">No hay ningún documento cargado.</div></div></main>
+  <aside class="card side">
+    <h3>Cómo usarlo</h3>
+    <p>1. Sube un JPG, PNG, WebP o PDF.</p>
+    <p>2. Activa escala de grises y/o marca de agua.</p>
+    <p>3. En cada página, arrastra para crear tachados negros sobre DNI, número, firma, dirección u otros datos.</p>
+    <p>4. Pulsa <b>Guardar y descargar</b>.</p>
+    <p><b>Privacidad:</b> el archivo se procesa en el navegador. No se envía a un servidor en esta versión.</p>
+    <p><b>Nota:</b> la redacción se rasteriza en el PDF de salida, por lo que los datos cubiertos no quedan como texto seleccionable.</p>
+  </aside>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+<script>
+const $=id=>document.getElementById(id);
+let originalFile=null, kind=null, pages=[], gray=false, wm=false;
+let pdfjsLib=null;
+
+(async()=>{
+  try{
+    pdfjsLib=await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs");
+    pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+  }catch(e){console.error(e)}
+})();
+
+function setStatus(s){$("status").textContent=s}
+function setProgress(v){$("bar").style.width=(v*100)+"%"}
+
+$("file").addEventListener("change", async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  originalFile=f; pages=[]; gray=false; wm=false; $("pages").innerHTML="";
+  setStatus("Cargando…"); setProgress(.05);
+  try{
+    if(f.type==="application/pdf"){
+      kind="pdf";
+      if(!pdfjsLib) throw new Error("No se pudo cargar el motor PDF. Comprueba tu conexión.");
+      const data=await f.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data}).promise;
+      for(let i=1;i<=pdf.numPages;i++){
+        const p=await pdf.getPage(i), vp=p.getViewport({scale:1.6});
+        const c=document.createElement("canvas"); c.width=vp.width;c.height=vp.height;
+        await p.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+        addPage(c);
+        setProgress(.05+.75*i/pdf.numPages);
+      }
+    }else if(f.type.startsWith("image/")){
+      kind="image";
+      const img=new Image(); img.src=URL.createObjectURL(f);
+      await img.decode();
+      const c=document.createElement("canvas"); c.width=img.naturalWidth;c.height=img.naturalHeight;
+      c.getContext("2d").drawImage(img,0,0);
+      addPage(c); setProgress(.8);
+    }else throw new Error("Formato no soportado.");
+    setStatus("Documento cargado. Arrastra sobre la vista previa para tachar datos.");
+  }catch(err){console.error(err);setStatus("Error: "+err.message); $("pages").innerHTML='<div class="empty">No se pudo abrir el archivo.</div>'}
+  setProgress(1);
+});
+
+function addPage(canvas){
+  const page={canvas, rects:[]}; pages.push(page);
+  const wrap=document.createElement("div"); wrap.className="page"; wrap.dataset.index=pages.length-1;
+  const overlay=document.createElement("div"); overlay.className="overlay";
+  wrap.appendChild(canvas); wrap.appendChild(overlay); $("pages").appendChild(wrap);
+  enableDrawing(wrap,overlay,page);
+}
+
+function enableDrawing(wrap,overlay,page){
+  let start=null, temp=null;
+  overlay.addEventListener("pointerdown",e=>{
+    const r=overlay.getBoundingClientRect();
+    start={x:e.clientX-r.left,y:e.clientY-r.top}; temp=document.createElement("div");
+    temp.className="redaction"; overlay.appendChild(temp); overlay.setPointerCapture(e.pointerId);
+  });
+  overlay.addEventListener("pointermove",e=>{
+    if(!start)return; const r=overlay.getBoundingClientRect();
+    const x=e.clientX-r.left,y=e.clientY-r.top;
+    Object.assign(temp.style,{left:Math.min(start.x,x)+"px",top:Math.min(start.y,y)+"px",width:Math.abs(x-start.x)+"px",height:Math.abs(y-start.y)+"px"});
+  });
+  overlay.addEventListener("pointerup",e=>{
+    if(!start)return; const r=overlay.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+    const rr={x:Math.min(start.x,x)/r.width,y:Math.min(start.y,y)/r.height,w:Math.abs(x-start.x)/r.width,h:Math.abs(y-start.y)/r.height};
+    if(rr.w>.005&&rr.h>.005) page.rects.push(rr); else temp.remove();
+    start=null;temp=null;
+  });
+}
+
+$("gray").onclick=()=>{gray=!gray; $("gray").textContent=gray?"Quitar escala de grises":"Escala de grises";};
+$("watermark").onclick=()=>{wm=!wm;$("watermark").textContent=wm?"Quitar marca de agua":"Marca de agua";renderWM()};
+function renderWM(){
+  document.querySelectorAll(".watermark-preview").forEach(x=>x.remove());
+  if(wm) document.querySelectorAll(".page").forEach(p=>{const d=document.createElement("div");d.className="watermark-preview";d.textContent=$("wm").value||"COPIA SANITIZADA";p.appendChild(d)});
+}
+$("wm").addEventListener("input",renderWM);
+$("clear").onclick=()=>{pages.forEach(p=>p.rects=[]);document.querySelectorAll(".redaction").forEach(x=>x.remove())};
+
+function sanitizedCanvas(page){
+  const src=page.canvas, out=document.createElement("canvas");out.width=src.width;out.height=src.height;
+  const ctx=out.getContext("2d");ctx.drawImage(src,0,0);
+  if(gray){
+    const d=ctx.getImageData(0,0,out.width,out.height), a=d.data;
+    for(let i=0;i<a.length;i+=4){const y=.299*a[i]+.587*a[i+1]+.114*a[i+2];a[i]=a[i+1]=a[i+2]=y}
+    ctx.putImageData(d,0,0);
+  }
+  ctx.fillStyle="#000";
+  page.rects.forEach(r=>ctx.fillRect(r.x*out.width,r.y*out.height,r.w*out.width,r.h*out.height));
+  if(wm){
+    ctx.save();ctx.translate(out.width/2,out.height/2);ctx.rotate(-Math.PI/7);
+    ctx.font="900 "+Math.max(24,out.width/18)+"px system-ui";ctx.textAlign="center";ctx.fillStyle="rgba(180,35,24,.28)";
+    ctx.fillText($("wm").value||"COPIA SANITIZADA",0,0);ctx.restore();
+  }
+  return out;
+}
+
+$("save").onclick=async()=>{
+  if(!pages.length)return setStatus("Primero carga un archivo.");
+  try{
+    setStatus("Generando archivo…");setProgress(.05);
+    if(kind==="image"){
+      const c=sanitizedCanvas(pages[0]), mime=originalFile.type==="image/png"?"image/png":originalFile.type==="image/webp"?"image/webp":"image/jpeg";
+      const blob=await new Promise(res=>c.toBlob(res,mime,.95));
+      download(blob,baseName(originalFile.name)+"-sanitizado."+extFor(mime)); setProgress(1);
+    }else{
+      const {PDFDocument}=await loadPdfLib();
+      const doc=await PDFDocument.create();
+      for(let i=0;i<pages.length;i++){
+        const c=sanitizedCanvas(pages[i]), jpg=await new Promise(res=>c.toBlob(res,"image/jpeg",.92));
+        const buf=await jpg.arrayBuffer(), img=await doc.embedJpg(buf);
+        const p=doc.addPage([c.width,c.height]);p.drawImage(img,{x:0,y:0,width:c.width,height:c.height});
+        setProgress((i+1)/pages.length);
+      }
+      const bytes=await doc.save(); download(new Blob([bytes],{type:"application/pdf"}),baseName(originalFile.name)+"-sanitizado.pdf");
+    }
+    setStatus("Listo. Se ha generado una copia sanitizada.");
+  }catch(e){console.error(e);setStatus("Error al guardar: "+e.message)}
+};
+async function loadPdfLib(){
+  return await import("https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm");
+}
+function baseName(n){return n.replace(/\.[^.]+$/,"")}
+function extFor(m){return m==="image/png"?"png":m==="image/webp"?"webp":"jpg"}
+function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+</script>
+</body>
+</html>
