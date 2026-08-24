@@ -159,16 +159,28 @@ function renderWM(){
     const width=page.clientWidth || page.offsetWidth || 800;
     const height=page.clientHeight || page.offsetHeight || 500;
     const rowStep=82;
-    const colStep=Math.max(180, Math.min(330, width/3));
+    // The horizontal step is based on the rendered text width, so every
+    // repeated watermark keeps a constant gap even when the text is long.
+    // The preview uses the same font metrics as the exported PDF/image.
+    const fontSize=34;
+    const fontWeight=900;
+    const gap=110;
 
     let row=0;
+    const measureCanvas=document.createElement("canvas");
+    const measureCtx=measureCanvas.getContext("2d");
+    measureCtx.font=`${fontWeight} ${fontSize}px system-ui, -apple-system, Segoe UI, sans-serif`;
+    const textWidth=measureCtx.measureText(text).width;
+    const step=textWidth+gap;
+
     for(let y=-100;y<height+120;y+=rowStep,row++){
-      const offset=(row%2===0)?0:colStep/2;
-      for(let x=-width;x<width*2;x+=colStep){
+      const offset=(row%2===0)?0:step/2;
+      for(let x=-width;x<width*2;x+=step){
         const span=document.createElement("span");
         span.textContent=text;
         span.style.left=(x+offset)+"px";
         span.style.top=y+"px";
+        span.style.fontSize=fontSize+"px";
         layer.appendChild(span);
       }
     }
@@ -228,12 +240,18 @@ function sanitizedCanvas(page){
 
     const diagonal=Math.ceil(Math.sqrt(out.width*out.width+out.height*out.height));
     const rowStep=Math.max(fontSize*2.2, 90);
-    const colStep=Math.max(fontSize*7, 320);
+
+    // Keep a constant physical gap between watermark phrases.
+    // The step depends on the actual rendered width of the phrase, so
+    // short and long phrases are spaced consistently without overlap.
+    const measuredWidth=ctx.measureText(text).width;
+    const gap=Math.max(fontSize*1.8, 110);
+    const step=measuredWidth+gap;
 
     for(let y=-diagonal;y<=diagonal;y+=rowStep){
       const row=Math.round((y+diagonal)/rowStep);
-      const offset=(row%2===0)?0:colStep/2;
-      for(let x=-diagonal*1.5;x<=diagonal*1.5;x+=colStep){
+      const offset=(row%2===0)?0:step/2;
+      for(let x=-diagonal*1.5;x<=diagonal*1.5;x+=step){
         ctx.fillText(text, x+offset, y);
       }
     }
