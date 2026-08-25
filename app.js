@@ -11,7 +11,8 @@
     en: {
       PAGE_TITLE: "Safe Layer — Document sanitizer",
       META_DESCRIPTION: "Sanitize images and PDF documents locally in your browser.",
-      APP_SUBTITLE: "Local sanitization of images and PDFs for safer document sharing.",
+      APP_SUBTITLE: "Local sanitization of images and PDFs for secure document sharing.",
+      QUICK_GUIDE: "Upload a file, use each page's tools to redact, rotate or crop it, then download a secure copy. Everything stays in your browser.",
       LOCAL_BADGE: "Processed in your browser",
       GITHUB_KICKER: "Open source · Built by",
       GITHUB_PROFILE_LABEL: "View @davidgcs on GitHub",
@@ -31,30 +32,29 @@
       WATERMARK_ADD: "Add watermark",
       WATERMARK_REMOVE: "Remove watermark",
       PAGE_ACTIONS_LABEL: "Page {page} actions",
+      START_REDACTING: "Start redacting",
+      STOP_REDACTING: "Stop redacting",
+      CLEAR_PAGE_REDACTIONS: "Clear this page's redactions",
+      DELETE_PAGE: "Delete page",
       ROTATE_LEFT: "Rotate left",
       ROTATE_RIGHT: "Rotate right",
       CROP_PAGE: "Crop page",
       CANCEL_CROP: "Cancel crop",
       APPLY_CROP: "Apply crop",
-      CLEAR_REDACTIONS: "Clear redactions",
       SAVE_DOWNLOAD: "Save and download",
-      INITIAL_STATUS: "Select an image or PDF, then drag black rectangles over the data you want to hide.",
+      INITIAL_STATUS: "Select an image or PDF to begin.",
       EMPTY_DOCUMENT: "No document loaded.",
-      HOW_TO_USE: "How to use it",
-      STEP_ONE: "Upload a JPG, PNG, WebP, or PDF.",
-      STEP_TWO: "Select a page to rotate it, or choose Crop page and drag the area you want to keep.",
-      STEP_THREE: "Set grayscale and watermark options, then drag over private data to create black redactions.",
-      STEP_FOUR: "Select Save and download. The watermark will repeat across every page.",
-      PRIVACY_LABEL: "Privacy:",
-      PRIVACY_TEXT: "your file is processed in this browser and is not sent to a server by this version.",
-      NOTE_LABEL: "Note:",
-      NOTE_TEXT: "redactions are rasterized in exported PDFs, so covered data does not remain selectable text.",
       DEFAULT_WATERMARK: "copy",
       LOADING: "Loading…",
       PDF_ENGINE_ERROR: "The PDF engine could not be loaded. Check your connection.",
       UNSUPPORTED_FORMAT: "Unsupported file format.",
-      DOCUMENT_LOADED: "Document loaded. Drag over the preview to redact data.",
-      PAGE_SELECTED: "Page {page} selected. Rotate it, crop it, or drag to redact data.",
+      DOCUMENT_LOADED: "Document loaded. Use the tools above each page to edit it.",
+      PAGE_SELECTED: "Page {page} selected. Choose a page tool to continue.",
+      REDACT_INSTRUCTION: "Drag over private data on page {page} to create black redactions.",
+      PAGE_REDACTIONS_CLEARED: "All redactions on page {page} were cleared.",
+      DELETE_PAGE_CONFIRM: "Delete page {page}? This cannot be undone.",
+      PAGE_DELETED: "Page {page} deleted.",
+      LAST_PAGE_DELETED: "The last page was deleted. Upload another file to continue.",
       CROP_INSTRUCTION: "Drag over the selected page to choose the area you want to keep.",
       CROP_READY: "Crop area selected. Drag its corner handles to resize it, then apply the crop.",
       CROP_APPLIED: "Crop applied to page {page}.",
@@ -71,7 +71,8 @@
     es: {
       PAGE_TITLE: "Safe Layer — Sanitizador de documentos",
       META_DESCRIPTION: "Sanitiza imágenes y documentos PDF de forma local en tu navegador.",
-      APP_SUBTITLE: "Sanitización local de imágenes y PDF para compartir documentos con menor riesgo.",
+      APP_SUBTITLE: "Sanitización local de imágenes y PDF para compartir documentos de forma segura.",
+      QUICK_GUIDE: "Sube un archivo, usa las herramientas de cada página para tachar, girar o recortar y descarga una copia segura. Todo permanece en tu navegador.",
       LOCAL_BADGE: "Procesamiento en tu navegador",
       GITHUB_KICKER: "Código abierto · Creado por",
       GITHUB_PROFILE_LABEL: "Ver @davidgcs en GitHub",
@@ -91,30 +92,29 @@
       WATERMARK_ADD: "Añadir marca de agua",
       WATERMARK_REMOVE: "Quitar marca de agua",
       PAGE_ACTIONS_LABEL: "Acciones de la página {page}",
+      START_REDACTING: "Comenzar a tachar",
+      STOP_REDACTING: "Dejar de tachar",
+      CLEAR_PAGE_REDACTIONS: "Borrar los tachados de esta página",
+      DELETE_PAGE: "Eliminar página",
       ROTATE_LEFT: "Girar a la izquierda",
       ROTATE_RIGHT: "Girar a la derecha",
       CROP_PAGE: "Recortar página",
       CANCEL_CROP: "Cancelar recorte",
       APPLY_CROP: "Aplicar recorte",
-      CLEAR_REDACTIONS: "Borrar tachados",
       SAVE_DOWNLOAD: "Guardar y descargar",
-      INITIAL_STATUS: "Selecciona una imagen o PDF. Después, arrastra rectángulos negros sobre los datos que quieras ocultar.",
+      INITIAL_STATUS: "Selecciona una imagen o PDF para comenzar.",
       EMPTY_DOCUMENT: "No hay ningún documento cargado.",
-      HOW_TO_USE: "Cómo usarlo",
-      STEP_ONE: "Sube un JPG, PNG, WebP o PDF.",
-      STEP_TWO: "Selecciona una página para girarla, o pulsa Recortar página y arrastra el área que quieras conservar.",
-      STEP_THREE: "Configura la escala de grises y la marca de agua; después arrastra sobre los datos privados para tacharlos.",
-      STEP_FOUR: "Pulsa Guardar y descargar. La marca de agua se repetirá por todas las páginas.",
-      PRIVACY_LABEL: "Privacidad:",
-      PRIVACY_TEXT: "el archivo se procesa en este navegador y no se envía a un servidor en esta versión.",
-      NOTE_LABEL: "Nota:",
-      NOTE_TEXT: "los tachados se rasterizan en el PDF exportado, por lo que los datos cubiertos no quedan como texto seleccionable.",
       DEFAULT_WATERMARK: "copia",
       LOADING: "Cargando…",
       PDF_ENGINE_ERROR: "No se pudo cargar el motor PDF. Comprueba tu conexión.",
       UNSUPPORTED_FORMAT: "Formato de archivo no compatible.",
-      DOCUMENT_LOADED: "Documento cargado. Arrastra sobre la vista previa para tachar datos.",
-      PAGE_SELECTED: "Página {page} seleccionada. Puedes girarla, recortarla o arrastrar para tachar datos.",
+      DOCUMENT_LOADED: "Documento cargado. Usa las herramientas sobre cada página para editarlo.",
+      PAGE_SELECTED: "Página {page} seleccionada. Elige una herramienta para continuar.",
+      REDACT_INSTRUCTION: "Arrastra sobre los datos privados de la página {page} para crear tachados negros.",
+      PAGE_REDACTIONS_CLEARED: "Se borraron todos los tachados de la página {page}.",
+      DELETE_PAGE_CONFIRM: "¿Eliminar la página {page}? Esta acción no se puede deshacer.",
+      PAGE_DELETED: "Página {page} eliminada.",
+      LAST_PAGE_DELETED: "Se eliminó la última página. Sube otro archivo para continuar.",
       CROP_INSTRUCTION: "Arrastra sobre la página seleccionada para elegir el área que quieras conservar.",
       CROP_READY: "Área de recorte seleccionada. Arrastra las esquinas para ajustarla y aplica el recorte.",
       CROP_APPLIED: "Recorte aplicado a la página {page}.",
@@ -132,7 +132,6 @@
 
   const elements = {
     bar: document.querySelector("#bar"),
-    clear: document.querySelector("#clear"),
     file: document.querySelector("#file"),
     gray: document.querySelector("#gray"),
     language: document.querySelector("#language"),
@@ -160,6 +159,7 @@
     originalFile: null,
     pages: [],
     processing: false,
+    redactPage: null,
     status: {key: "INITIAL_STATUS", params: {}},
     theme: "light",
     watermark: true,
@@ -274,7 +274,6 @@
     elements.watermarkText.disabled = isBusy;
     elements.watermarkWeight.disabled = isBusy;
     elements.watermark.disabled = isBusy;
-    elements.clear.disabled = isBusy;
     elements.save.disabled = isBusy;
     updatePageActionStates();
   }
@@ -304,6 +303,7 @@
     state.activePage = null;
     state.cropMode = false;
     state.cropPage = null;
+    state.redactPage = null;
     state.pages = [];
     state.grayscale = true;
     state.watermark = true;
@@ -442,6 +442,22 @@
     actions.className = "page-actions";
     actions.setAttribute("aria-label", translate("PAGE_ACTIONS_LABEL", {page: pageNumber}));
 
+    const redactActions = document.createElement("div");
+    redactActions.className = "page-actions__group";
+    const editActions = document.createElement("div");
+    editActions.className = "page-actions__group";
+
+    page.redactButton = createIconButton("START_REDACTING", `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m4 20 4-.8L19 8.2a2.1 2.1 0 0 0-3.2-3.2L4.8 16 4 20Z"/><path d="m13.8 7 3.2 3.2M3 22h18"/>
+      </svg>
+    `);
+    page.clearRedactionsButton = createIconButton("CLEAR_PAGE_REDACTIONS", `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7v5h5"/><path d="M5.5 17a8 8 0 1 0-1.3-8.2L4 12"/>
+      </svg>
+    `);
+
     page.rotateLeftButton = createIconButton("ROTATE_LEFT", `
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M9 7H4V2"/><path d="M4 7a8 8 0 1 1-1 8"/>
@@ -462,12 +478,28 @@
         <path d="m5 12 4 4L19 6"/>
       </svg>
     `, "page-action--confirm");
+    page.deleteButton = createIconButton("DELETE_PAGE", `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>
+      </svg>
+    `, "page-action--danger");
 
+    page.redactButton.addEventListener("click", () => toggleRedactMode(page));
+    page.clearRedactionsButton.addEventListener("click", () => clearPageRedactions(page));
     page.rotateLeftButton.addEventListener("click", () => rotatePage(page, "left"));
     page.rotateRightButton.addEventListener("click", () => rotatePage(page, "right"));
     page.cropButton.addEventListener("click", () => toggleCropMode(page));
     page.applyCropButton.addEventListener("click", () => applyCrop(page));
-    actions.append(page.rotateLeftButton, page.rotateRightButton, page.cropButton, page.applyCropButton);
+    page.deleteButton.addEventListener("click", () => deletePage(page));
+    redactActions.append(page.redactButton, page.clearRedactionsButton);
+    editActions.append(
+      page.rotateLeftButton,
+      page.rotateRightButton,
+      page.cropButton,
+      page.applyCropButton,
+      page.deleteButton
+    );
+    actions.append(redactActions, editActions);
     page.actions = actions;
     updatePageActionStates();
     return actions;
@@ -486,15 +518,20 @@
     let start = null;
     let temporarySelection = null;
     let drawingCrop = false;
+    let drawingRedaction = false;
 
     page.overlay.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
 
       if (state.cropMode && state.cropPage !== page) setCropMode(false);
+      if (state.redactPage && state.redactPage !== page) setRedactMode(null);
       selectPage(page);
       const bounds = page.overlay.getBoundingClientRect();
-      start = getPointerPosition(event, bounds);
       drawingCrop = state.cropMode && state.cropPage === page;
+      drawingRedaction = state.redactPage === page;
+      if (!drawingCrop && !drawingRedaction) return;
+
+      start = getPointerPosition(event, bounds);
       if (drawingCrop) clearCropSelection();
 
       temporarySelection = document.createElement("div");
@@ -524,6 +561,7 @@
           setStatus("CROP_READY");
         } else {
           page.rects.push(rect);
+          updatePageActionStates();
         }
       } else {
         temporarySelection.remove();
@@ -532,6 +570,7 @@
       start = null;
       temporarySelection = null;
       drawingCrop = false;
+      drawingRedaction = false;
     });
 
     page.overlay.addEventListener("pointercancel", () => {
@@ -539,6 +578,7 @@
       start = null;
       temporarySelection = null;
       drawingCrop = false;
+      drawingRedaction = false;
     });
   }
 
@@ -649,7 +689,7 @@
       candidate.wrapper.classList.toggle("selected", candidate === page);
     });
 
-    if (announce && !state.cropMode) {
+    if (announce && !state.cropMode && state.redactPage !== page) {
       setStatus("PAGE_SELECTED", {page: state.pages.indexOf(page) + 1});
     }
   }
@@ -663,6 +703,8 @@
   function setCropMode(enabled, page = null) {
     state.cropMode = enabled;
     if (enabled) {
+      state.redactPage = null;
+      state.pages.forEach((candidate) => candidate.overlay.classList.remove("redact-mode"));
       clearCropSelection();
       state.cropPage = page;
       selectPage(page, false);
@@ -682,8 +724,57 @@
     setStatus(state.cropMode ? "CROP_INSTRUCTION" : "DOCUMENT_LOADED");
   }
 
+  function setRedactMode(page) {
+    setCropMode(false);
+    state.redactPage = page;
+    state.pages.forEach((candidate) => {
+      candidate.overlay.classList.toggle("redact-mode", candidate === page);
+    });
+    if (page) selectPage(page, false);
+    updatePageActionStates();
+  }
+
+  function toggleRedactMode(page) {
+    const shouldEnable = state.redactPage !== page;
+    setRedactMode(shouldEnable ? page : null);
+    setStatus(
+      shouldEnable ? "REDACT_INSTRUCTION" : "PAGE_SELECTED",
+      {page: state.pages.indexOf(page) + 1}
+    );
+  }
+
+  function clearPageRedactions(page) {
+    page.rects = [];
+    renderPageRedactions(page);
+    updatePageActionStates();
+    selectPage(page, false);
+    setStatus("PAGE_REDACTIONS_CLEARED", {page: state.pages.indexOf(page) + 1});
+  }
+
+  function deletePage(page) {
+    const pageIndex = state.pages.indexOf(page);
+    if (pageIndex < 0 || !window.confirm(translate("DELETE_PAGE_CONFIRM", {page: pageIndex + 1}))) return;
+
+    setRedactMode(null);
+    state.pages.splice(pageIndex, 1);
+    page.shell.remove();
+
+    if (!state.pages.length) {
+      state.activePage = null;
+      showEmptyState("EMPTY_DOCUMENT");
+      setStatus("LAST_PAGE_DELETED");
+      return;
+    }
+
+    const nextPage = state.pages[Math.min(pageIndex, state.pages.length - 1)];
+    selectPage(nextPage, false);
+    updatePageActionStates();
+    setStatus("PAGE_DELETED", {page: pageIndex + 1});
+  }
+
   function rotatePage(page, direction) {
     selectPage(page, false);
+    setRedactMode(null);
     setCropMode(false);
     const source = document.createElement("canvas");
     source.width = page.canvas.width;
@@ -754,20 +845,34 @@
       if (!page.actions) return;
       page.actions.setAttribute("aria-label", translate("PAGE_ACTIONS_LABEL", {page: index + 1}));
       const isCropping = state.cropMode && state.cropPage === page;
+      const isRedacting = state.redactPage === page;
       const hasCropSelection = state.cropSelection?.page === page;
 
+      page.redactButton.disabled = state.processing;
+      page.clearRedactionsButton.disabled = state.processing || !page.rects.length;
       page.rotateLeftButton.disabled = state.processing;
       page.rotateRightButton.disabled = state.processing;
       page.cropButton.disabled = state.processing;
       page.applyCropButton.disabled = state.processing || !hasCropSelection;
+      page.deleteButton.disabled = state.processing;
+      page.redactButton.setAttribute("aria-pressed", String(isRedacting));
       page.cropButton.setAttribute("aria-pressed", String(isCropping));
 
-      [page.rotateLeftButton, page.rotateRightButton, page.applyCropButton].forEach((button) => {
+      [
+        page.clearRedactionsButton,
+        page.rotateLeftButton,
+        page.rotateRightButton,
+        page.applyCropButton,
+        page.deleteButton
+      ].forEach((button) => {
         const label = translate(button.dataset.labelKey);
         button.setAttribute("aria-label", label);
         button.title = label;
       });
 
+      const redactLabel = translate(isRedacting ? "STOP_REDACTING" : "START_REDACTING");
+      page.redactButton.setAttribute("aria-label", redactLabel);
+      page.redactButton.title = redactLabel;
       const cropLabel = translate(isCropping ? "CANCEL_CROP" : "CROP_PAGE");
       page.cropButton.setAttribute("aria-label", cropLabel);
       page.cropButton.title = cropLabel;
@@ -810,13 +915,6 @@
     state.watermark = !state.watermark;
     updateToggleLabels();
     renderWatermarks();
-  }
-
-  function clearRedactions() {
-    state.pages.forEach((page) => {
-      page.rects = [];
-      page.overlay.querySelectorAll(".redaction").forEach((redaction) => redaction.remove());
-    });
   }
 
   function getWatermarkText() {
@@ -1052,7 +1150,6 @@
     updateWatermarkWeight();
     if (state.watermark) scheduleWatermarkRender();
   });
-  elements.clear.addEventListener("click", clearRedactions);
   elements.save.addEventListener("click", saveDocument);
   elements.language.addEventListener("change", (event) => applyLanguage(event.target.value));
   elements.theme.addEventListener("click", toggleTheme);

@@ -8,6 +8,7 @@ they are shared for government, official, or professional procedures.
 - English and Spanish interface with a persistent light/dark theme.
 - Permanent black redactions in exported files.
 - Per-page cropping and left/right rotation for images and PDFs.
+- Explicit per-page redaction mode, reset action, and page deletion with confirmation.
 - Grayscale and the localized `copy`/`copia` watermark are enabled automatically.
 - Adjustable watermark weight with a slider.
 - Repeating wave-shaped watermark with consistent spacing for text of any length.

@@ -66,10 +66,13 @@
       </div>
 
       <header class="site-header">
-        <div>
+        <div class="app-intro">
           <h1>Safe Layer</h1>
           <p class="subtitle" data-i18n="APP_SUBTITLE">
-            Local sanitization of images and PDFs for safer document sharing.
+            Local sanitization of images and PDFs for secure document sharing.
+          </p>
+          <p class="quick-guide" data-i18n="QUICK_GUIDE">
+            Upload a file, use each page's tools to redact, rotate or crop it, then download a secure copy. Everything stays in your browser.
           </p>
         </div>
 
@@ -154,18 +157,10 @@
             </label>
           </div>
 
-          <div class="toolbar-row final-actions">
-            <button id="clear" class="button secondary" type="button" data-i18n="CLEAR_REDACTIONS">
-              Clear redactions
-            </button>
-            <button id="save" class="button" type="button" data-i18n="SAVE_DOWNLOAD">
-              Save and download
-            </button>
-          </div>
         </div>
 
         <p class="status" id="status" aria-live="polite">
-          Select an image or PDF, then drag black rectangles over the data you want to hide.
+          Select an image or PDF to begin.
         </p>
         <div
           class="progress"
@@ -184,35 +179,12 @@
           <div id="pages">
             <div class="empty" data-i18n="EMPTY_DOCUMENT">No document loaded.</div>
           </div>
+          <div class="document-save">
+            <button id="save" class="button" type="button" data-i18n="SAVE_DOWNLOAD">
+              Save and download
+            </button>
+          </div>
         </main>
-
-        <aside class="card instructions">
-          <h2 data-i18n="HOW_TO_USE">How to use it</h2>
-          <ol>
-            <li data-i18n="STEP_ONE">Upload a JPG, PNG, WebP, or PDF.</li>
-            <li data-i18n="STEP_TWO">
-              Select a page to rotate it, or choose Crop page and drag the area you want to keep.
-            </li>
-            <li data-i18n="STEP_THREE">
-              Set grayscale and watermark options, then drag over private data to create black redactions.
-            </li>
-            <li data-i18n="STEP_FOUR">
-              Select Save and download. The watermark will repeat across every page.
-            </li>
-          </ol>
-          <p>
-            <strong data-i18n="PRIVACY_LABEL">Privacy:</strong>
-            <span data-i18n="PRIVACY_TEXT">
-              your file is processed in this browser and is not sent to a server by this version.
-            </span>
-          </p>
-          <p>
-            <strong data-i18n="NOTE_LABEL">Note:</strong>
-            <span data-i18n="NOTE_TEXT">
-              redactions are rasterized in exported PDFs, so covered data does not remain selectable text.
-            </span>
-          </p>
-        </aside>
       </div>
     </div>
 
