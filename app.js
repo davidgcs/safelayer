@@ -30,8 +30,7 @@
       WATERMARK_WEIGHT_LABEL: "Watermark weight",
       WATERMARK_ADD: "Add watermark",
       WATERMARK_REMOVE: "Remove watermark",
-      TRANSFORM_CONTROLS_LABEL: "Page transforms",
-      TRANSFORM_LABEL: "Selected page",
+      PAGE_ACTIONS_LABEL: "Page {page} actions",
       ROTATE_LEFT: "Rotate left",
       ROTATE_RIGHT: "Rotate right",
       CROP_PAGE: "Crop page",
@@ -91,8 +90,7 @@
       WATERMARK_WEIGHT_LABEL: "Grosor de la marca",
       WATERMARK_ADD: "Añadir marca de agua",
       WATERMARK_REMOVE: "Quitar marca de agua",
-      TRANSFORM_CONTROLS_LABEL: "Transformaciones de página",
-      TRANSFORM_LABEL: "Página seleccionada",
+      PAGE_ACTIONS_LABEL: "Acciones de la página {page}",
       ROTATE_LEFT: "Girar a la izquierda",
       ROTATE_RIGHT: "Girar a la derecha",
       CROP_PAGE: "Recortar página",
@@ -133,18 +131,14 @@
   };
 
   const elements = {
-    applyCrop: document.querySelector("#apply-crop"),
     bar: document.querySelector("#bar"),
     clear: document.querySelector("#clear"),
-    crop: document.querySelector("#crop"),
     file: document.querySelector("#file"),
     gray: document.querySelector("#gray"),
     language: document.querySelector("#language"),
     metaDescription: document.querySelector("#meta-description"),
     pages: document.querySelector("#pages"),
     progress: document.querySelector("[role='progressbar']"),
-    rotateLeft: document.querySelector("#rotate-left"),
-    rotateRight: document.querySelector("#rotate-right"),
     save: document.querySelector("#save"),
     status: document.querySelector("#status"),
     theme: document.querySelector("#theme"),
@@ -158,6 +152,7 @@
   const state = {
     activePage: null,
     cropMode: false,
+    cropPage: null,
     cropSelection: null,
     grayscale: true,
     kind: null,
@@ -279,12 +274,9 @@
     elements.watermarkText.disabled = isBusy;
     elements.watermarkWeight.disabled = isBusy;
     elements.watermark.disabled = isBusy;
-    elements.crop.disabled = isBusy;
-    elements.applyCrop.disabled = isBusy || !state.cropSelection;
-    elements.rotateLeft.disabled = isBusy;
-    elements.rotateRight.disabled = isBusy;
     elements.clear.disabled = isBusy;
     elements.save.disabled = isBusy;
+    updatePageActionStates();
   }
 
   function updateToggleLabels() {
@@ -292,8 +284,7 @@
     elements.gray.setAttribute("aria-pressed", String(state.grayscale));
     elements.watermark.textContent = translate(state.watermark ? "WATERMARK_REMOVE" : "WATERMARK_ADD");
     elements.watermark.setAttribute("aria-pressed", String(state.watermark));
-    elements.crop.textContent = translate(state.cropMode ? "CANCEL_CROP" : "CROP_PAGE");
-    elements.crop.setAttribute("aria-pressed", String(state.cropMode));
+    updatePageActionStates();
   }
 
   function updateWatermarkWeight() {
@@ -312,6 +303,7 @@
     clearCropSelection();
     state.activePage = null;
     state.cropMode = false;
+    state.cropPage = null;
     state.pages = [];
     state.grayscale = true;
     state.watermark = true;
@@ -423,21 +415,71 @@
   function addPage(canvas) {
     canvas.className = "document-canvas";
 
+    const shell = document.createElement("div");
+    shell.className = "page-shell";
+
     const wrapper = document.createElement("div");
     wrapper.className = "page";
 
     const overlay = document.createElement("div");
     overlay.className = "overlay";
 
-    const page = {canvas, overlay, rects: [], wrapper};
+    const page = {canvas, overlay, rects: [], shell, wrapper};
     wrapper.classList.toggle("grayscale", state.grayscale);
     wrapper.append(canvas, overlay);
-    elements.pages.append(wrapper);
     state.pages.push(page);
+    const actions = createPageActions(page, state.pages.length);
+    shell.append(actions, wrapper);
+    elements.pages.append(shell);
 
     if (!state.activePage) selectPage(page, false);
 
     enableRedactionDrawing(page);
+  }
+
+  function createPageActions(page, pageNumber) {
+    const actions = document.createElement("div");
+    actions.className = "page-actions";
+    actions.setAttribute("aria-label", translate("PAGE_ACTIONS_LABEL", {page: pageNumber}));
+
+    page.rotateLeftButton = createIconButton("ROTATE_LEFT", `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 7H4V2"/><path d="M4 7a8 8 0 1 1-1 8"/>
+      </svg>
+    `);
+    page.rotateRightButton = createIconButton("ROTATE_RIGHT", `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15 7h5V2"/><path d="M20 7a8 8 0 1 0 1 8"/>
+      </svg>
+    `);
+    page.cropButton = createIconButton("CROP_PAGE", `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/>
+      </svg>
+    `);
+    page.applyCropButton = createIconButton("APPLY_CROP", `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m5 12 4 4L19 6"/>
+      </svg>
+    `, "page-action--confirm");
+
+    page.rotateLeftButton.addEventListener("click", () => rotatePage(page, "left"));
+    page.rotateRightButton.addEventListener("click", () => rotatePage(page, "right"));
+    page.cropButton.addEventListener("click", () => toggleCropMode(page));
+    page.applyCropButton.addEventListener("click", () => applyCrop(page));
+    actions.append(page.rotateLeftButton, page.rotateRightButton, page.cropButton, page.applyCropButton);
+    page.actions = actions;
+    updatePageActionStates();
+    return actions;
+  }
+
+  function createIconButton(translationKey, icon, extraClass = "") {
+    const button = document.createElement("button");
+    button.className = `page-action ${extraClass}`.trim();
+    button.type = "button";
+    button.dataset.labelKey = translationKey;
+    button.innerHTML = icon;
+    return button;
   }
 
   function enableRedactionDrawing(page) {
@@ -448,10 +490,11 @@
     page.overlay.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
 
+      if (state.cropMode && state.cropPage !== page) setCropMode(false);
       selectPage(page);
       const bounds = page.overlay.getBoundingClientRect();
       start = getPointerPosition(event, bounds);
-      drawingCrop = state.cropMode;
+      drawingCrop = state.cropMode && state.cropPage === page;
       if (drawingCrop) clearCropSelection();
 
       temporarySelection = document.createElement("div");
@@ -476,7 +519,7 @@
         setRelativeSelectionStyle(temporarySelection, rect);
         if (drawingCrop) {
           state.cropSelection = {element: temporarySelection, page, rect};
-          elements.applyCrop.disabled = false;
+          updatePageActionStates();
           setStatus("CROP_READY");
         } else {
           page.rects.push(rect);
@@ -547,33 +590,33 @@
   function clearCropSelection() {
     state.cropSelection?.element.remove();
     state.cropSelection = null;
-    if (elements.applyCrop) elements.applyCrop.disabled = true;
+    updatePageActionStates();
   }
 
-  function setCropMode(enabled) {
+  function setCropMode(enabled, page = null) {
     state.cropMode = enabled;
-    if (!enabled) clearCropSelection();
-    state.pages.forEach(({overlay}) => overlay.classList.toggle("crop-mode", enabled));
-    updateToggleLabels();
+    if (enabled) {
+      clearCropSelection();
+      state.cropPage = page;
+      selectPage(page, false);
+    } else {
+      state.cropPage = null;
+      clearCropSelection();
+    }
+    state.pages.forEach((candidate) => {
+      candidate.overlay.classList.toggle("crop-mode", enabled && candidate === page);
+    });
+    updatePageActionStates();
   }
 
-  function toggleCropMode() {
-    if (!state.pages.length) {
-      setStatus("FIRST_UPLOAD");
-      return;
-    }
-
-    setCropMode(!state.cropMode);
+  function toggleCropMode(page) {
+    const shouldEnable = !state.cropMode || state.cropPage !== page;
+    setCropMode(shouldEnable, shouldEnable ? page : null);
     setStatus(state.cropMode ? "CROP_INSTRUCTION" : "DOCUMENT_LOADED");
   }
 
-  function rotateActivePage(direction) {
-    const page = state.activePage;
-    if (!page) {
-      setStatus("FIRST_UPLOAD");
-      return;
-    }
-
+  function rotatePage(page, direction) {
+    selectPage(page, false);
     setCropMode(false);
     const source = document.createElement("canvas");
     source.width = page.canvas.width;
@@ -610,8 +653,8 @@
     setStatus("PAGE_ROTATED", {page: state.pages.indexOf(page) + 1});
   }
 
-  function applyCrop() {
-    if (!state.cropSelection) return;
+  function applyCrop(targetPage) {
+    if (!state.cropSelection || state.cropSelection.page !== targetPage) return;
 
     const {page, rect} = state.cropSelection;
     const source = document.createElement("canvas");
@@ -637,6 +680,31 @@
     renderWatermarks();
     selectPage(page, false);
     setStatus("CROP_APPLIED", {page: state.pages.indexOf(page) + 1});
+  }
+
+  function updatePageActionStates() {
+    state.pages.forEach((page, index) => {
+      if (!page.actions) return;
+      page.actions.setAttribute("aria-label", translate("PAGE_ACTIONS_LABEL", {page: index + 1}));
+      const isCropping = state.cropMode && state.cropPage === page;
+      const hasCropSelection = state.cropSelection?.page === page;
+
+      page.rotateLeftButton.disabled = state.processing;
+      page.rotateRightButton.disabled = state.processing;
+      page.cropButton.disabled = state.processing;
+      page.applyCropButton.disabled = state.processing || !hasCropSelection;
+      page.cropButton.setAttribute("aria-pressed", String(isCropping));
+
+      [page.rotateLeftButton, page.rotateRightButton, page.applyCropButton].forEach((button) => {
+        const label = translate(button.dataset.labelKey);
+        button.setAttribute("aria-label", label);
+        button.title = label;
+      });
+
+      const cropLabel = translate(isCropping ? "CANCEL_CROP" : "CROP_PAGE");
+      page.cropButton.setAttribute("aria-label", cropLabel);
+      page.cropButton.title = cropLabel;
+    });
   }
 
   function intersectWithCrop(redaction, crop) {
@@ -908,11 +976,7 @@
   }
 
   elements.file.addEventListener("change", handleFileSelection);
-  elements.applyCrop.addEventListener("click", applyCrop);
-  elements.crop.addEventListener("click", toggleCropMode);
   elements.gray.addEventListener("click", toggleGrayscale);
-  elements.rotateLeft.addEventListener("click", () => rotateActivePage("left"));
-  elements.rotateRight.addEventListener("click", () => rotateActivePage("right"));
   elements.watermark.addEventListener("click", toggleWatermark);
   elements.watermarkText.addEventListener("input", () => {
     if (state.watermark) scheduleWatermarkRender();
