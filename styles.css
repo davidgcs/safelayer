@@ -406,6 +406,46 @@ input[type="text"] {
     inset 0 0 0 1px rgb(255 255 255 / 65%);
 }
 
+.crop-handle {
+  position: absolute;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #7c3aed;
+  box-shadow: 0 1px 5px rgb(15 23 42 / 45%);
+  touch-action: none;
+}
+
+.crop-handle--nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+  transform: translate(-50%, -50%);
+}
+
+.crop-handle--ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+  transform: translate(50%, -50%);
+}
+
+.crop-handle--se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+  transform: translate(50%, 50%);
+}
+
+.crop-handle--sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+  transform: translate(-50%, 50%);
+}
+
 .empty {
   padding: 80px 20px;
   color: #64748b;

@@ -56,7 +56,7 @@
       DOCUMENT_LOADED: "Document loaded. Drag over the preview to redact data.",
       PAGE_SELECTED: "Page {page} selected. Rotate it, crop it, or drag to redact data.",
       CROP_INSTRUCTION: "Drag over the selected page to choose the area you want to keep.",
-      CROP_READY: "Crop area selected. Choose Apply crop to keep this area.",
+      CROP_READY: "Crop area selected. Drag its corner handles to resize it, then apply the crop.",
       CROP_APPLIED: "Crop applied to page {page}.",
       PAGE_ROTATED: "Page {page} rotated.",
       OPEN_ERROR: "Could not open the file: {detail}",
@@ -116,7 +116,7 @@
       DOCUMENT_LOADED: "Documento cargado. Arrastra sobre la vista previa para tachar datos.",
       PAGE_SELECTED: "Página {page} seleccionada. Puedes girarla, recortarla o arrastrar para tachar datos.",
       CROP_INSTRUCTION: "Arrastra sobre la página seleccionada para elegir el área que quieras conservar.",
-      CROP_READY: "Área de recorte seleccionada. Pulsa Aplicar recorte para conservarla.",
+      CROP_READY: "Área de recorte seleccionada. Arrastra las esquinas para ajustarla y aplica el recorte.",
       CROP_APPLIED: "Recorte aplicado a la página {page}.",
       PAGE_ROTATED: "Página {page} girada.",
       OPEN_ERROR: "No se pudo abrir el archivo: {detail}",
@@ -519,6 +519,7 @@
         setRelativeSelectionStyle(temporarySelection, rect);
         if (drawingCrop) {
           state.cropSelection = {element: temporarySelection, page, rect};
+          addCropResizeHandles(temporarySelection, page);
           updatePageActionStates();
           setStatus("CROP_READY");
         } else {
@@ -573,6 +574,72 @@
       width: `${rect.width * 100}%`,
       height: `${rect.height * 100}%`
     });
+  }
+
+  function addCropResizeHandles(selection, page) {
+    ["nw", "ne", "se", "sw"].forEach((direction) => {
+      const handle = document.createElement("span");
+      handle.className = `crop-handle crop-handle--${direction}`;
+      handle.dataset.direction = direction;
+      handle.setAttribute("aria-hidden", "true");
+      selection.append(handle);
+      enableCropHandle(handle, selection, page);
+    });
+  }
+
+  function enableCropHandle(handle, selection, page) {
+    let initialRect = null;
+    let bounds = null;
+
+    handle.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || state.cropSelection?.element !== selection) return;
+      event.preventDefault();
+      event.stopPropagation();
+      bounds = page.overlay.getBoundingClientRect();
+      initialRect = {...state.cropSelection.rect};
+      handle.setPointerCapture(event.pointerId);
+    });
+
+    handle.addEventListener("pointermove", (event) => {
+      if (!initialRect) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const pointer = getPointerPosition(event, bounds);
+      const x = pointer.x / bounds.width;
+      const y = pointer.y / bounds.height;
+      const minimumSize = 0.01;
+      let left = initialRect.x;
+      let top = initialRect.y;
+      let right = initialRect.x + initialRect.width;
+      let bottom = initialRect.y + initialRect.height;
+      const direction = handle.dataset.direction;
+
+      if (direction.includes("w")) left = Math.min(x, right - minimumSize);
+      if (direction.includes("e")) right = Math.max(x, left + minimumSize);
+      if (direction.includes("n")) top = Math.min(y, bottom - minimumSize);
+      if (direction.includes("s")) bottom = Math.max(y, top + minimumSize);
+
+      const rect = {
+        x: Math.max(0, left),
+        y: Math.max(0, top),
+        width: Math.min(1, right) - Math.max(0, left),
+        height: Math.min(1, bottom) - Math.max(0, top)
+      };
+      state.cropSelection.rect = rect;
+      setRelativeSelectionStyle(selection, rect);
+    });
+
+    const finishResize = (event) => {
+      if (!initialRect) return;
+      event.stopPropagation();
+      initialRect = null;
+      bounds = null;
+      setStatus("CROP_READY");
+    };
+
+    handle.addEventListener("pointerup", finishResize);
+    handle.addEventListener("pointercancel", finishResize);
   }
 
   function selectPage(page, announce = true) {
