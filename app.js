@@ -448,7 +448,7 @@
     `);
     page.clearRedactionsButton = createIconButton("CLEAR_PAGE_REDACTIONS", `
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 7v5h5"/><path d="M5.5 17a8 8 0 1 0-1.3-8.2L4 12"/>
+        <path d="m7 21-4-4a2 2 0 0 1 0-3L13 4a2 2 0 0 1 3 0l4 4a2 2 0 0 1 0 3L10 21H7Z"/><path d="m5 12 7 7M7 21h14"/>
       </svg>
     `);
 

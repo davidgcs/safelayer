@@ -122,11 +122,9 @@ input[type="text"] {
 
 .theme-toggle__icon {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   place-items: center;
-  border-radius: 50%;
-  background: rgb(23 32 51 / 8%);
 }
 
 .theme-toggle svg {
@@ -561,10 +559,6 @@ html[data-theme="dark"] .button.secondary {
 html[data-theme="dark"] .button[aria-pressed="true"] {
   color: #fff;
   background: #da3633;
-}
-
-html[data-theme="dark"] .theme-toggle__icon {
-  background: rgb(255 255 255 / 9%);
 }
 
 html[data-theme="dark"] .watermark-settings {
