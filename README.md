@@ -11,6 +11,7 @@ they are shared for government, official, or professional procedures.
 - Adjustable watermark weight with a slider.
 - Repeating wave-shaped watermark with consistent spacing for text of any length.
 - Local browser processing; this version does not upload documents to a server.
+- Branded favicon and social preview card for shared links.
 
 ## Reusable GitHub branding
 
