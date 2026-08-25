@@ -18,8 +18,6 @@
       GITHUB_PROFILE_LABEL: "View @davidgcs on GitHub",
       GITHUB_REPOSITORY_CTA: "See code",
       GITHUB_REPOSITORY_LABEL: "See the Safe Layer source code on GitHub",
-      DARK_THEME: "Dark theme",
-      LIGHT_THEME: "Light theme",
       DARK_THEME_LABEL: "Switch to dark theme",
       LIGHT_THEME_LABEL: "Switch to light theme",
       LANGUAGE_LABEL: "Language",
@@ -78,8 +76,6 @@
       GITHUB_PROFILE_LABEL: "Ver @davidgcs en GitHub",
       GITHUB_REPOSITORY_CTA: "Ver código",
       GITHUB_REPOSITORY_LABEL: "Ver el código fuente de Safe Layer en GitHub",
-      DARK_THEME: "Tema oscuro",
-      LIGHT_THEME: "Tema claro",
       DARK_THEME_LABEL: "Cambiar al tema oscuro",
       LIGHT_THEME_LABEL: "Cambiar al tema claro",
       LANGUAGE_LABEL: "Idioma",
@@ -141,7 +137,6 @@
     save: document.querySelector("#save"),
     status: document.querySelector("#status"),
     theme: document.querySelector("#theme"),
-    themeLabel: document.querySelector("#theme-label"),
     watermark: document.querySelector("#watermark"),
     watermarkText: document.querySelector("#wm"),
     watermarkWeight: document.querySelector("#wm-weight"),
@@ -213,7 +208,6 @@
     const isDark = state.theme === "dark";
     elements.theme.setAttribute("aria-checked", String(isDark));
     elements.theme.setAttribute("aria-label", translate(isDark ? "LIGHT_THEME_LABEL" : "DARK_THEME_LABEL"));
-    elements.themeLabel.textContent = translate(isDark ? "LIGHT_THEME" : "DARK_THEME");
   }
 
   function toggleTheme() {

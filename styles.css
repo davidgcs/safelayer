@@ -115,7 +115,8 @@ input[type="text"] {
 }
 
 .theme-toggle {
-  gap: 8px;
+  width: 42px;
+  padding: 0;
   margin-left: auto;
 }
 
@@ -139,13 +140,14 @@ input[type="text"] {
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.theme-toggle__moon,
-.theme-toggle[aria-checked="true"] .theme-toggle__sun {
+.theme-toggle__sun,
+.theme-toggle[aria-checked="true"] .theme-toggle__moon {
   opacity: 0;
   transform: rotate(-45deg) scale(0.6);
 }
 
-.theme-toggle[aria-checked="true"] .theme-toggle__moon {
+.theme-toggle__moon,
+.theme-toggle[aria-checked="true"] .theme-toggle__sun {
   opacity: 1;
   transform: rotate(0) scale(1);
 }
@@ -650,7 +652,8 @@ html[data-theme="dark"] .progress-bar {
   }
 
   .theme-toggle {
-    margin-left: 0;
+    width: 42px;
+    margin-left: auto;
   }
 
   .document-save .button {
