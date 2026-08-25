@@ -31,14 +31,21 @@
       WATERMARK_WEIGHT_LABEL: "Watermark weight",
       WATERMARK_ADD: "Add watermark",
       WATERMARK_REMOVE: "Remove watermark",
+      TRANSFORM_CONTROLS_LABEL: "Page transforms",
+      TRANSFORM_LABEL: "Selected page",
+      ROTATE_LEFT: "Rotate left",
+      ROTATE_RIGHT: "Rotate right",
+      CROP_PAGE: "Crop page",
+      CANCEL_CROP: "Cancel crop",
+      APPLY_CROP: "Apply crop",
       CLEAR_REDACTIONS: "Clear redactions",
       SAVE_DOWNLOAD: "Save and download",
       INITIAL_STATUS: "Select an image or PDF, then drag black rectangles over the data you want to hide.",
       EMPTY_DOCUMENT: "No document loaded.",
       HOW_TO_USE: "How to use it",
       STEP_ONE: "Upload a JPG, PNG, WebP, or PDF.",
-      STEP_TWO: "Turn on grayscale and/or enter custom watermark text, then enable the wave pattern.",
-      STEP_THREE: "Drag over IDs, numbers, signatures, addresses, or other data to create black redactions.",
+      STEP_TWO: "Select a page to rotate it, or choose Crop page and drag the area you want to keep.",
+      STEP_THREE: "Set grayscale and watermark options, then drag over private data to create black redactions.",
       STEP_FOUR: "Select Save and download. The watermark will repeat across every page.",
       PRIVACY_LABEL: "Privacy:",
       PRIVACY_TEXT: "your file is processed in this browser and is not sent to a server by this version.",
@@ -49,6 +56,11 @@
       PDF_ENGINE_ERROR: "The PDF engine could not be loaded. Check your connection.",
       UNSUPPORTED_FORMAT: "Unsupported file format.",
       DOCUMENT_LOADED: "Document loaded. Drag over the preview to redact data.",
+      PAGE_SELECTED: "Page {page} selected. Rotate it, crop it, or drag to redact data.",
+      CROP_INSTRUCTION: "Drag over the selected page to choose the area you want to keep.",
+      CROP_READY: "Crop area selected. Choose Apply crop to keep this area.",
+      CROP_APPLIED: "Crop applied to page {page}.",
+      PAGE_ROTATED: "Page {page} rotated.",
       OPEN_ERROR: "Could not open the file: {detail}",
       OPEN_ERROR_EMPTY: "The file could not be opened.",
       FIRST_UPLOAD: "Load a file first.",
@@ -81,14 +93,21 @@
       WATERMARK_WEIGHT_LABEL: "Grosor de la marca",
       WATERMARK_ADD: "Añadir marca de agua",
       WATERMARK_REMOVE: "Quitar marca de agua",
+      TRANSFORM_CONTROLS_LABEL: "Transformaciones de página",
+      TRANSFORM_LABEL: "Página seleccionada",
+      ROTATE_LEFT: "Girar a la izquierda",
+      ROTATE_RIGHT: "Girar a la derecha",
+      CROP_PAGE: "Recortar página",
+      CANCEL_CROP: "Cancelar recorte",
+      APPLY_CROP: "Aplicar recorte",
       CLEAR_REDACTIONS: "Borrar tachados",
       SAVE_DOWNLOAD: "Guardar y descargar",
       INITIAL_STATUS: "Selecciona una imagen o PDF. Después, arrastra rectángulos negros sobre los datos que quieras ocultar.",
       EMPTY_DOCUMENT: "No hay ningún documento cargado.",
       HOW_TO_USE: "Cómo usarlo",
       STEP_ONE: "Sube un JPG, PNG, WebP o PDF.",
-      STEP_TWO: "Activa la escala de grises y/o escribe una marca de agua personalizada y activa el patrón ondulado.",
-      STEP_THREE: "Arrastra sobre DNI, números, firmas, direcciones u otros datos para crear tachados negros.",
+      STEP_TWO: "Selecciona una página para girarla, o pulsa Recortar página y arrastra el área que quieras conservar.",
+      STEP_THREE: "Configura la escala de grises y la marca de agua; después arrastra sobre los datos privados para tacharlos.",
       STEP_FOUR: "Pulsa Guardar y descargar. La marca de agua se repetirá por todas las páginas.",
       PRIVACY_LABEL: "Privacidad:",
       PRIVACY_TEXT: "el archivo se procesa en este navegador y no se envía a un servidor en esta versión.",
@@ -99,6 +118,11 @@
       PDF_ENGINE_ERROR: "No se pudo cargar el motor PDF. Comprueba tu conexión.",
       UNSUPPORTED_FORMAT: "Formato de archivo no compatible.",
       DOCUMENT_LOADED: "Documento cargado. Arrastra sobre la vista previa para tachar datos.",
+      PAGE_SELECTED: "Página {page} seleccionada. Puedes girarla, recortarla o arrastrar para tachar datos.",
+      CROP_INSTRUCTION: "Arrastra sobre la página seleccionada para elegir el área que quieras conservar.",
+      CROP_READY: "Área de recorte seleccionada. Pulsa Aplicar recorte para conservarla.",
+      CROP_APPLIED: "Recorte aplicado a la página {page}.",
+      PAGE_ROTATED: "Página {page} girada.",
       OPEN_ERROR: "No se pudo abrir el archivo: {detail}",
       OPEN_ERROR_EMPTY: "No se pudo abrir el archivo.",
       FIRST_UPLOAD: "Primero carga un archivo.",
@@ -111,14 +135,18 @@
   };
 
   const elements = {
+    applyCrop: document.querySelector("#apply-crop"),
     bar: document.querySelector("#bar"),
     clear: document.querySelector("#clear"),
+    crop: document.querySelector("#crop"),
     file: document.querySelector("#file"),
     gray: document.querySelector("#gray"),
     language: document.querySelector("#language"),
     metaDescription: document.querySelector("#meta-description"),
     pages: document.querySelector("#pages"),
     progress: document.querySelector("[role='progressbar']"),
+    rotateLeft: document.querySelector("#rotate-left"),
+    rotateRight: document.querySelector("#rotate-right"),
     save: document.querySelector("#save"),
     status: document.querySelector("#status"),
     theme: document.querySelector("#theme"),
@@ -130,6 +158,9 @@
   };
 
   const state = {
+    activePage: null,
+    cropMode: false,
+    cropSelection: null,
     grayscale: true,
     kind: null,
     language: "en",
@@ -250,6 +281,10 @@
     elements.watermarkText.disabled = isBusy;
     elements.watermarkWeight.disabled = isBusy;
     elements.watermark.disabled = isBusy;
+    elements.crop.disabled = isBusy;
+    elements.applyCrop.disabled = isBusy || !state.cropSelection;
+    elements.rotateLeft.disabled = isBusy;
+    elements.rotateRight.disabled = isBusy;
     elements.clear.disabled = isBusy;
     elements.save.disabled = isBusy;
   }
@@ -259,6 +294,8 @@
     elements.gray.setAttribute("aria-pressed", String(state.grayscale));
     elements.watermark.textContent = translate(state.watermark ? "WATERMARK_REMOVE" : "WATERMARK_ADD");
     elements.watermark.setAttribute("aria-pressed", String(state.watermark));
+    elements.crop.textContent = translate(state.cropMode ? "CANCEL_CROP" : "CROP_PAGE");
+    elements.crop.setAttribute("aria-pressed", String(state.cropMode));
   }
 
   function updateWatermarkWeight() {
@@ -274,6 +311,9 @@
   }
 
   function resetDocument() {
+    clearCropSelection();
+    state.activePage = null;
+    state.cropMode = false;
     state.pages = [];
     state.grayscale = true;
     state.watermark = true;
@@ -397,28 +437,35 @@
     elements.pages.append(wrapper);
     state.pages.push(page);
 
+    if (!state.activePage) selectPage(page, false);
+
     enableRedactionDrawing(page);
   }
 
   function enableRedactionDrawing(page) {
     let start = null;
-    let temporaryRedaction = null;
+    let temporarySelection = null;
+    let drawingCrop = false;
 
     page.overlay.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
 
+      selectPage(page);
       const bounds = page.overlay.getBoundingClientRect();
       start = getPointerPosition(event, bounds);
-      temporaryRedaction = document.createElement("div");
-      temporaryRedaction.className = "redaction";
-      page.overlay.append(temporaryRedaction);
+      drawingCrop = state.cropMode;
+      if (drawingCrop) clearCropSelection();
+
+      temporarySelection = document.createElement("div");
+      temporarySelection.className = drawingCrop ? "crop-selection" : "redaction";
+      page.overlay.append(temporarySelection);
       page.overlay.setPointerCapture(event.pointerId);
     });
 
     page.overlay.addEventListener("pointermove", (event) => {
       if (!start) return;
       const bounds = page.overlay.getBoundingClientRect();
-      updateRedactionStyle(temporaryRedaction, start, getPointerPosition(event, bounds), bounds);
+      updateSelectionStyle(temporarySelection, start, getPointerPosition(event, bounds));
     });
 
     page.overlay.addEventListener("pointerup", (event) => {
@@ -428,20 +475,28 @@
       const rect = getNormalizedRect(start, end, bounds);
 
       if (rect.width > 0.005 && rect.height > 0.005) {
-        page.rects.push(rect);
-        setRelativeRedactionStyle(temporaryRedaction, rect);
+        setRelativeSelectionStyle(temporarySelection, rect);
+        if (drawingCrop) {
+          state.cropSelection = {element: temporarySelection, page, rect};
+          elements.applyCrop.disabled = false;
+          setStatus("CROP_READY");
+        } else {
+          page.rects.push(rect);
+        }
       } else {
-        temporaryRedaction.remove();
+        temporarySelection.remove();
       }
 
       start = null;
-      temporaryRedaction = null;
+      temporarySelection = null;
+      drawingCrop = false;
     });
 
     page.overlay.addEventListener("pointercancel", () => {
-      temporaryRedaction?.remove();
+      temporarySelection?.remove();
       start = null;
-      temporaryRedaction = null;
+      temporarySelection = null;
+      drawingCrop = false;
     });
   }
 
@@ -461,7 +516,7 @@
     };
   }
 
-  function updateRedactionStyle(element, start, end) {
+  function updateSelectionStyle(element, start, end) {
     Object.assign(element.style, {
       left: `${Math.min(start.x, end.x)}px`,
       top: `${Math.min(start.y, end.y)}px`,
@@ -470,12 +525,144 @@
     });
   }
 
-  function setRelativeRedactionStyle(element, rect) {
+  function setRelativeSelectionStyle(element, rect) {
     Object.assign(element.style, {
       left: `${rect.x * 100}%`,
       top: `${rect.y * 100}%`,
       width: `${rect.width * 100}%`,
       height: `${rect.height * 100}%`
+    });
+  }
+
+  function selectPage(page, announce = true) {
+    if (!page) return;
+    state.activePage = page;
+    state.pages.forEach((candidate) => {
+      candidate.wrapper.classList.toggle("selected", candidate === page);
+    });
+
+    if (announce && !state.cropMode) {
+      setStatus("PAGE_SELECTED", {page: state.pages.indexOf(page) + 1});
+    }
+  }
+
+  function clearCropSelection() {
+    state.cropSelection?.element.remove();
+    state.cropSelection = null;
+    if (elements.applyCrop) elements.applyCrop.disabled = true;
+  }
+
+  function setCropMode(enabled) {
+    state.cropMode = enabled;
+    if (!enabled) clearCropSelection();
+    state.pages.forEach(({overlay}) => overlay.classList.toggle("crop-mode", enabled));
+    updateToggleLabels();
+  }
+
+  function toggleCropMode() {
+    if (!state.pages.length) {
+      setStatus("FIRST_UPLOAD");
+      return;
+    }
+
+    setCropMode(!state.cropMode);
+    setStatus(state.cropMode ? "CROP_INSTRUCTION" : "DOCUMENT_LOADED");
+  }
+
+  function rotateActivePage(direction) {
+    const page = state.activePage;
+    if (!page) {
+      setStatus("FIRST_UPLOAD");
+      return;
+    }
+
+    setCropMode(false);
+    const source = document.createElement("canvas");
+    source.width = page.canvas.width;
+    source.height = page.canvas.height;
+    source.getContext("2d").drawImage(page.canvas, 0, 0);
+
+    page.canvas.width = source.height;
+    page.canvas.height = source.width;
+    const context = page.canvas.getContext("2d");
+
+    if (direction === "left") {
+      context.translate(0, page.canvas.height);
+      context.rotate(-Math.PI / 2);
+      page.rects = page.rects.map((rect) => ({
+        x: rect.y,
+        y: 1 - rect.x - rect.width,
+        width: rect.height,
+        height: rect.width
+      }));
+    } else {
+      context.translate(page.canvas.width, 0);
+      context.rotate(Math.PI / 2);
+      page.rects = page.rects.map((rect) => ({
+        x: 1 - rect.y - rect.height,
+        y: rect.x,
+        width: rect.height,
+        height: rect.width
+      }));
+    }
+
+    context.drawImage(source, 0, 0);
+    renderPageRedactions(page);
+    renderWatermarks();
+    setStatus("PAGE_ROTATED", {page: state.pages.indexOf(page) + 1});
+  }
+
+  function applyCrop() {
+    if (!state.cropSelection) return;
+
+    const {page, rect} = state.cropSelection;
+    const source = document.createElement("canvas");
+    source.width = page.canvas.width;
+    source.height = page.canvas.height;
+    source.getContext("2d").drawImage(page.canvas, 0, 0);
+
+    const x = Math.floor(rect.x * source.width);
+    const y = Math.floor(rect.y * source.height);
+    const width = Math.max(1, Math.min(source.width - x, Math.ceil(rect.width * source.width)));
+    const height = Math.max(1, Math.min(source.height - y, Math.ceil(rect.height * source.height)));
+
+    page.rects = page.rects
+      .map((redaction) => intersectWithCrop(redaction, rect))
+      .filter(Boolean);
+
+    clearCropSelection();
+    page.canvas.width = width;
+    page.canvas.height = height;
+    page.canvas.getContext("2d").drawImage(source, x, y, width, height, 0, 0, width, height);
+    setCropMode(false);
+    renderPageRedactions(page);
+    renderWatermarks();
+    selectPage(page, false);
+    setStatus("CROP_APPLIED", {page: state.pages.indexOf(page) + 1});
+  }
+
+  function intersectWithCrop(redaction, crop) {
+    const left = Math.max(redaction.x, crop.x);
+    const top = Math.max(redaction.y, crop.y);
+    const right = Math.min(redaction.x + redaction.width, crop.x + crop.width);
+    const bottom = Math.min(redaction.y + redaction.height, crop.y + crop.height);
+    if (right <= left || bottom <= top) return null;
+
+    return {
+      x: (left - crop.x) / crop.width,
+      y: (top - crop.y) / crop.height,
+      width: (right - left) / crop.width,
+      height: (bottom - top) / crop.height
+    };
+  }
+
+  function renderPageRedactions(page) {
+    page.overlay.querySelectorAll(".redaction").forEach((redaction) => redaction.remove());
+    page.rects.forEach((rect) => {
+      const redaction = document.createElement("div");
+      redaction.className = "redaction";
+      setRelativeSelectionStyle(redaction, rect);
+      page.overlay.append(redaction);
     });
   }
 
@@ -723,7 +910,11 @@
   }
 
   elements.file.addEventListener("change", handleFileSelection);
+  elements.applyCrop.addEventListener("click", applyCrop);
+  elements.crop.addEventListener("click", toggleCropMode);
   elements.gray.addEventListener("click", toggleGrayscale);
+  elements.rotateLeft.addEventListener("click", () => rotateActivePage("left"));
+  elements.rotateRight.addEventListener("click", () => rotateActivePage("right"));
   elements.watermark.addEventListener("click", toggleWatermark);
   elements.watermarkText.addEventListener("input", () => {
     if (state.watermark) scheduleWatermarkRender();

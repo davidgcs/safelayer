@@ -129,6 +129,22 @@
             </button>
           </div>
 
+          <div class="toolbar-row transform-controls" aria-label="Page transforms" data-i18n-aria-label="TRANSFORM_CONTROLS_LABEL">
+            <span class="field-label transform-controls__label" data-i18n="TRANSFORM_LABEL">Selected page</span>
+            <button id="rotate-left" class="button secondary" type="button" data-i18n="ROTATE_LEFT">
+              Rotate left
+            </button>
+            <button id="rotate-right" class="button secondary" type="button" data-i18n="ROTATE_RIGHT">
+              Rotate right
+            </button>
+            <button id="crop" class="button secondary" type="button" aria-pressed="false">
+              Crop page
+            </button>
+            <button id="apply-crop" class="button" type="button" disabled data-i18n="APPLY_CROP">
+              Apply crop
+            </button>
+          </div>
+
           <div class="toolbar-row watermark-settings">
             <label class="watermark-field">
               <span class="field-label" data-i18n="WATERMARK_INPUT_LABEL">Watermark text</span>
@@ -195,10 +211,10 @@
           <ol>
             <li data-i18n="STEP_ONE">Upload a JPG, PNG, WebP, or PDF.</li>
             <li data-i18n="STEP_TWO">
-              Turn on grayscale and/or enter custom watermark text, then enable the wave pattern.
+              Select a page to rotate it, or choose Crop page and drag the area you want to keep.
             </li>
             <li data-i18n="STEP_THREE">
-              Drag over IDs, numbers, signatures, addresses, or other data to create black redactions.
+              Set grayscale and watermark options, then drag over private data to create black redactions.
             </li>
             <li data-i18n="STEP_FOUR">
               Select Save and download. The watermark will repeat across every page.
