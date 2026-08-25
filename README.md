@@ -5,7 +5,7 @@ they are shared for government, official, or professional procedures.
 
 ## Features
 
-- English and Spanish interface.
+- English and Spanish interface with a persistent light/dark theme.
 - Permanent black redactions in exported files.
 - Grayscale and the localized `copy`/`copia` watermark are enabled automatically.
 - Adjustable watermark weight with a slider.
@@ -14,8 +14,9 @@ they are shared for government, official, or professional procedures.
 
 ## Reusable GitHub branding
 
-The creator banner links to [@davidgcs](https://github.com/davidgcs). To reuse
-it in another static app, copy the `.github-brand` element from `index.html`,
+The creator banner links to [@davidgcs](https://github.com/davidgcs) and the
+[Safe Layer repository](https://github.com/davidgcs/safelayer). To reuse it in
+another static app, copy the `.github-brand` element from `index.html`,
 copy `github-brand.css`, and link the stylesheet from the new app's `<head>`.
 
 ## Run locally

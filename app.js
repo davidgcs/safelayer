@@ -14,8 +14,14 @@
       APP_SUBTITLE: "Local sanitization of images and PDFs for safer document sharing.",
       LOCAL_BADGE: "Processed in your browser",
       GITHUB_KICKER: "Open source · Built by",
-      GITHUB_CTA: "View GitHub",
+      GITHUB_CTA: "View profile",
       GITHUB_PROFILE_LABEL: "View @davidgcs on GitHub",
+      GITHUB_REPOSITORY_CTA: "See repository",
+      GITHUB_REPOSITORY_LABEL: "See the Safe Layer repository on GitHub",
+      DARK_THEME: "Dark theme",
+      LIGHT_THEME: "Light theme",
+      DARK_THEME_LABEL: "Switch to dark theme",
+      LIGHT_THEME_LABEL: "Switch to light theme",
       LANGUAGE_LABEL: "Language",
       CONTROLS_LABEL: "Document controls",
       OPEN_FILE: "Open file",
@@ -58,8 +64,14 @@
       APP_SUBTITLE: "Sanitización local de imágenes y PDF para compartir documentos con menor riesgo.",
       LOCAL_BADGE: "Procesamiento en tu navegador",
       GITHUB_KICKER: "Código abierto · Creado por",
-      GITHUB_CTA: "Ver GitHub",
+      GITHUB_CTA: "Ver perfil",
       GITHUB_PROFILE_LABEL: "Ver @davidgcs en GitHub",
+      GITHUB_REPOSITORY_CTA: "Ver repositorio",
+      GITHUB_REPOSITORY_LABEL: "Ver el repositorio de Safe Layer en GitHub",
+      DARK_THEME: "Tema oscuro",
+      LIGHT_THEME: "Tema claro",
+      DARK_THEME_LABEL: "Cambiar al tema oscuro",
+      LIGHT_THEME_LABEL: "Cambiar al tema claro",
       LANGUAGE_LABEL: "Idioma",
       CONTROLS_LABEL: "Controles del documento",
       OPEN_FILE: "Abrir archivo",
@@ -109,6 +121,8 @@
     progress: document.querySelector("[role='progressbar']"),
     save: document.querySelector("#save"),
     status: document.querySelector("#status"),
+    theme: document.querySelector("#theme"),
+    themeLabel: document.querySelector("#theme-label"),
     watermark: document.querySelector("#watermark"),
     watermarkText: document.querySelector("#wm"),
     watermarkWeight: document.querySelector("#wm-weight"),
@@ -123,6 +137,7 @@
     pages: [],
     processing: false,
     status: {key: "INITIAL_STATUS", params: {}},
+    theme: "light",
     watermark: true,
     watermarkFrame: null
   };
@@ -146,6 +161,39 @@
       // Some file:// contexts disable storage. Browser language remains a safe fallback.
     }
     return navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
+  }
+
+  function getInitialTheme() {
+    try {
+      const saved = localStorage.getItem("safe-layer-theme");
+      if (saved === "dark" || saved === "light") return saved;
+    } catch {
+      // Theme persistence is optional.
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function applyTheme(theme) {
+    state.theme = theme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.theme = state.theme;
+    updateThemeControl();
+
+    try {
+      localStorage.setItem("safe-layer-theme", state.theme);
+    } catch {
+      // Theme persistence is optional.
+    }
+  }
+
+  function updateThemeControl() {
+    const isDark = state.theme === "dark";
+    elements.theme.setAttribute("aria-checked", String(isDark));
+    elements.theme.setAttribute("aria-label", translate(isDark ? "LIGHT_THEME_LABEL" : "DARK_THEME_LABEL"));
+    elements.themeLabel.textContent = translate(isDark ? "LIGHT_THEME" : "DARK_THEME");
+  }
+
+  function toggleTheme() {
+    applyTheme(state.theme === "dark" ? "light" : "dark");
   }
 
   function applyLanguage(language) {
@@ -172,6 +220,7 @@
     }
 
     updateToggleLabels();
+    updateThemeControl();
     setStatus(state.status.key, state.status.params);
 
     try {
@@ -686,7 +735,9 @@
   elements.clear.addEventListener("click", clearRedactions);
   elements.save.addEventListener("click", saveDocument);
   elements.language.addEventListener("change", (event) => applyLanguage(event.target.value));
+  elements.theme.addEventListener("click", toggleTheme);
 
   updateWatermarkWeight();
+  applyTheme(getInitialTheme());
   applyLanguage(getInitialLanguage());
 })();

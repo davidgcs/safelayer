@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   color: #172033;
   background: #f5f7fb;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -11,6 +12,8 @@
 
 body {
   margin: 0;
+  background: #f5f7fb;
+  transition: color 180ms ease, background 180ms ease;
 }
 
 button,
@@ -98,6 +101,42 @@ input[type="text"] {
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 10px;
+}
+
+.theme-toggle {
+  gap: 8px;
+  margin-left: auto;
+}
+
+.theme-toggle__icon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(23 32 51 / 8%);
+}
+
+.theme-toggle svg {
+  grid-area: 1 / 1;
+  width: 14px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.theme-toggle__moon,
+.theme-toggle[aria-checked="true"] .theme-toggle__sun {
+  opacity: 0;
+  transform: rotate(-45deg) scale(0.6);
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle__moon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
 }
 
 .watermark-settings {
@@ -325,6 +364,74 @@ noscript {
   text-align: center;
 }
 
+html[data-theme="dark"] {
+  color: #e6edf3;
+  background: #0d1117;
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: #0d1117;
+}
+
+html[data-theme="dark"] .subtitle,
+html[data-theme="dark"] .privacy-badge,
+html[data-theme="dark"] .status,
+html[data-theme="dark"] .field-label,
+html[data-theme="dark"] .watermark-weight-field,
+html[data-theme="dark"] .empty {
+  color: #8c959f;
+}
+
+html[data-theme="dark"] .card {
+  border-color: #30363d;
+  background: #161b22;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 24%);
+}
+
+html[data-theme="dark"] .language-control select,
+html[data-theme="dark"] input[type="text"] {
+  border-color: #30363d;
+  color: #e6edf3;
+  background: #0d1117;
+}
+
+html[data-theme="dark"] .button {
+  color: #0d1117;
+  background: #f0f6fc;
+}
+
+html[data-theme="dark"] .button.secondary {
+  color: #e6edf3;
+  background: #30363d;
+}
+
+html[data-theme="dark"] .button[aria-pressed="true"] {
+  color: #fff;
+  background: #da3633;
+}
+
+html[data-theme="dark"] .theme-toggle__icon {
+  background: rgb(255 255 255 / 9%);
+}
+
+html[data-theme="dark"] .watermark-settings {
+  border-color: #30363d;
+  background: #0d1117;
+}
+
+html[data-theme="dark"] .watermark-weight-field output {
+  color: #e6edf3;
+}
+
+html[data-theme="dark"] .progress {
+  background: #30363d;
+}
+
+html[data-theme="dark"] .progress-bar {
+  background: #a78bfa;
+}
+
 @media (max-width: 850px) {
   .workspace {
     grid-template-columns: 1fr;
@@ -360,6 +467,10 @@ noscript {
   .watermark-weight-field {
     width: 100%;
     max-width: none;
+  }
+
+  .theme-toggle {
+    margin-left: 0;
   }
 
   .watermark-weight-field {
