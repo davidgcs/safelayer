@@ -12,6 +12,12 @@ they are shared for government, official, or professional procedures.
 - Repeating wave-shaped watermark with consistent spacing for text of any length.
 - Local browser processing; this version does not upload documents to a server.
 
+## Reusable GitHub branding
+
+The creator banner links to [@davidgcs](https://github.com/davidgcs). To reuse
+it in another static app, copy the `.github-brand` element from `index.html`,
+copy `github-brand.css`, and link the stylesheet from the new app's `<head>`.
+
 ## Run locally
 
 ```sh
