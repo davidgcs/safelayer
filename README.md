@@ -9,6 +9,8 @@ they are shared for government, official, or professional procedures.
 - Permanent black redactions in exported files.
 - Per-page cropping and left/right rotation for images and PDFs.
 - Explicit per-page redaction mode, reset action, and page deletion with confirmation.
+- Multi-file workspace with additional image/PDF page imports.
+- Export every page as an individual PNG or combine all pages into one PDF.
 - Grayscale and the localized `copy`/`copia` watermark are enabled automatically.
 - Adjustable watermark weight with a slider.
 - Repeating wave-shaped watermark with consistent spacing for text of any length.

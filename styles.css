@@ -278,10 +278,28 @@ input[type="text"] {
 
 .document-save {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid #e2e8f0;
+}
+
+.add-pages-button {
+  gap: 7px;
+}
+
+.add-pages-button > span:first-child {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.export-actions {
+  display: flex;
+  gap: 10px;
 }
 
 #pages {
@@ -652,6 +670,11 @@ html[data-theme="dark"] .progress-bar {
 
   .document-save .button {
     width: 100%;
+  }
+
+  .export-actions {
+    width: 100%;
+    flex-direction: column;
   }
 
   .watermark-weight-field {

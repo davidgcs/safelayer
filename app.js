@@ -12,7 +12,7 @@
       PAGE_TITLE: "Safe Layer — Document sanitizer",
       META_DESCRIPTION: "Sanitize images and PDF documents locally in your browser.",
       APP_SUBTITLE: "Local sanitization of images and PDFs for secure document sharing.",
-      QUICK_GUIDE: "Upload a file, use each page's tools to redact, rotate or crop it, then download a secure copy. Everything stays in your browser.",
+      QUICK_GUIDE: "Upload files, add more pages, edit each one and export everything as images or one PDF. Everything stays in your browser.",
       LOCAL_BADGE: "Processed in your browser",
       GITHUB_KICKER: "Open source · Built by",
       GITHUB_PROFILE_LABEL: "View @davidgcs on GitHub",
@@ -22,7 +22,7 @@
       LIGHT_THEME_LABEL: "Switch to light theme",
       LANGUAGE_LABEL: "Language",
       CONTROLS_LABEL: "Document controls",
-      OPEN_FILE: "Open file",
+      OPEN_FILE: "Open files",
       GRAYSCALE_ADD: "Grayscale",
       GRAYSCALE_REMOVE: "Remove grayscale",
       WATERMARK_INPUT_LABEL: "Watermark text",
@@ -39,7 +39,9 @@
       CROP_PAGE: "Crop page",
       CANCEL_CROP: "Cancel crop",
       APPLY_CROP: "Apply crop",
-      SAVE_DOWNLOAD: "Save and download",
+      ADD_PAGES: "Add page",
+      SAVE_IMAGES: "Save images",
+      SAVE_PDF: "Save PDF",
       INITIAL_STATUS: "Select an image or PDF to begin.",
       EMPTY_DOCUMENT: "No document loaded.",
       DEFAULT_WATERMARK: "copy",
@@ -47,6 +49,7 @@
       PDF_ENGINE_ERROR: "The PDF engine could not be loaded. Check your connection.",
       UNSUPPORTED_FORMAT: "Unsupported file format.",
       DOCUMENT_LOADED: "Document loaded. Use the tools above each page to edit it.",
+      PAGES_ADDED: "Added {count} new page(s).",
       PAGE_SELECTED: "Page {page} selected. Choose a page tool to continue.",
       REDACT_INSTRUCTION: "Drag over private data on page {page} to create black redactions.",
       PAGE_REDACTIONS_CLEARED: "All redactions on page {page} were cleared.",
@@ -60,8 +63,10 @@
       OPEN_ERROR: "Could not open the file: {detail}",
       OPEN_ERROR_EMPTY: "The file could not be opened.",
       FIRST_UPLOAD: "Load a file first.",
-      GENERATING: "Generating file…",
-      COMPLETE: "Done. A sanitized copy has been generated.",
+      GENERATING_IMAGES: "Generating images…",
+      GENERATING_PDF: "Generating PDF…",
+      IMAGES_COMPLETE: "Done. Every page has been downloaded as a PNG image.",
+      PDF_COMPLETE: "Done. All pages have been combined into one PDF.",
       SAVE_ERROR: "Could not save the file: {detail}",
       IMAGE_ERROR: "The image could not be generated.",
       FILE_SUFFIX: "sanitized"
@@ -70,7 +75,7 @@
       PAGE_TITLE: "Safe Layer — Sanitizador de documentos",
       META_DESCRIPTION: "Sanitiza imágenes y documentos PDF de forma local en tu navegador.",
       APP_SUBTITLE: "Sanitización local de imágenes y PDF para compartir documentos de forma segura.",
-      QUICK_GUIDE: "Sube un archivo, usa las herramientas de cada página para tachar, girar o recortar y descarga una copia segura. Todo permanece en tu navegador.",
+      QUICK_GUIDE: "Sube archivos, añade páginas, edita cada una y exporta todo como imágenes o en un único PDF. Todo permanece en tu navegador.",
       LOCAL_BADGE: "Procesamiento en tu navegador",
       GITHUB_KICKER: "Código abierto · Creado por",
       GITHUB_PROFILE_LABEL: "Ver @davidgcs en GitHub",
@@ -80,7 +85,7 @@
       LIGHT_THEME_LABEL: "Cambiar al tema claro",
       LANGUAGE_LABEL: "Idioma",
       CONTROLS_LABEL: "Controles del documento",
-      OPEN_FILE: "Abrir archivo",
+      OPEN_FILE: "Abrir archivos",
       GRAYSCALE_ADD: "Escala de grises",
       GRAYSCALE_REMOVE: "Quitar escala de grises",
       WATERMARK_INPUT_LABEL: "Texto de la marca de agua",
@@ -97,7 +102,9 @@
       CROP_PAGE: "Recortar página",
       CANCEL_CROP: "Cancelar recorte",
       APPLY_CROP: "Aplicar recorte",
-      SAVE_DOWNLOAD: "Guardar y descargar",
+      ADD_PAGES: "Añadir página",
+      SAVE_IMAGES: "Guardar imágenes",
+      SAVE_PDF: "Guardar PDF",
       INITIAL_STATUS: "Selecciona una imagen o PDF para comenzar.",
       EMPTY_DOCUMENT: "No hay ningún documento cargado.",
       DEFAULT_WATERMARK: "copia",
@@ -105,6 +112,7 @@
       PDF_ENGINE_ERROR: "No se pudo cargar el motor PDF. Comprueba tu conexión.",
       UNSUPPORTED_FORMAT: "Formato de archivo no compatible.",
       DOCUMENT_LOADED: "Documento cargado. Usa las herramientas sobre cada página para editarlo.",
+      PAGES_ADDED: "Se añadieron {count} página(s) nuevas.",
       PAGE_SELECTED: "Página {page} seleccionada. Elige una herramienta para continuar.",
       REDACT_INSTRUCTION: "Arrastra sobre los datos privados de la página {page} para crear tachados negros.",
       PAGE_REDACTIONS_CLEARED: "Se borraron todos los tachados de la página {page}.",
@@ -118,8 +126,10 @@
       OPEN_ERROR: "No se pudo abrir el archivo: {detail}",
       OPEN_ERROR_EMPTY: "No se pudo abrir el archivo.",
       FIRST_UPLOAD: "Primero carga un archivo.",
-      GENERATING: "Generando archivo…",
-      COMPLETE: "Listo. Se ha generado una copia sanitizada.",
+      GENERATING_IMAGES: "Generando imágenes…",
+      GENERATING_PDF: "Generando PDF…",
+      IMAGES_COMPLETE: "Listo. Cada página se ha descargado como una imagen PNG.",
+      PDF_COMPLETE: "Listo. Todas las páginas se han combinado en un único PDF.",
       SAVE_ERROR: "No se pudo guardar el archivo: {detail}",
       IMAGE_ERROR: "No se pudo generar la imagen.",
       FILE_SUFFIX: "sanitizado"
@@ -127,6 +137,7 @@
   };
 
   const elements = {
+    addFiles: document.querySelector("#add-files"),
     bar: document.querySelector("#bar"),
     file: document.querySelector("#file"),
     gray: document.querySelector("#gray"),
@@ -134,7 +145,8 @@
     metaDescription: document.querySelector("#meta-description"),
     pages: document.querySelector("#pages"),
     progress: document.querySelector("[role='progressbar']"),
-    save: document.querySelector("#save"),
+    saveImages: document.querySelector("#save-images"),
+    savePdf: document.querySelector("#save-pdf"),
     status: document.querySelector("#status"),
     theme: document.querySelector("#theme"),
     watermark: document.querySelector("#watermark"),
@@ -149,7 +161,6 @@
     cropPage: null,
     cropSelection: null,
     grayscale: true,
-    kind: null,
     language: "en",
     originalFile: null,
     pages: [],
@@ -263,12 +274,14 @@
 
   function setBusy(isBusy) {
     state.processing = isBusy;
+    elements.addFiles.disabled = isBusy;
     elements.file.disabled = isBusy;
     elements.gray.disabled = isBusy;
     elements.watermarkText.disabled = isBusy;
     elements.watermarkWeight.disabled = isBusy;
     elements.watermark.disabled = isBusy;
-    elements.save.disabled = isBusy;
+    elements.saveImages.disabled = isBusy;
+    elements.savePdf.disabled = isBusy;
     updatePageActionStates();
   }
 
@@ -331,33 +344,58 @@
   }
 
   async function handleFileSelection(event) {
-    const file = event.target.files[0];
-    if (!file || state.processing) return;
+    await loadSelectedFiles(event, true);
+  }
 
-    state.originalFile = file;
-    resetDocument();
+  async function handleAdditionalFileSelection(event) {
+    await loadSelectedFiles(event, false);
+  }
+
+  async function loadSelectedFiles(event, replaceDocument) {
+    const files = Array.from(event.target.files || []);
+    if (!files.length || state.processing) return;
+
+    if (files.some((file) => file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
+      setStatus("UNSUPPORTED_FORMAT");
+      event.target.value = "";
+      return;
+    }
+
+    const previousPageCount = replaceDocument ? 0 : state.pages.length;
+    if (replaceDocument) {
+      resetDocument();
+      state.originalFile = files[0];
+    } else {
+      setRedactMode(null);
+      if (!state.pages.length) {
+        elements.pages.replaceChildren();
+        state.originalFile = files[0];
+      }
+    }
+
     setBusy(true);
     setStatus("LOADING");
     setProgress(0.05);
 
     try {
-      if (file.type === "application/pdf") {
-        state.kind = "pdf";
-        await loadPdf(file);
-      } else if (file.type.startsWith("image/")) {
-        state.kind = "image";
-        await loadImage(file);
-      } else {
-        throw new Error(translate("UNSUPPORTED_FORMAT"));
+      for (const file of files) {
+        if (file.type === "application/pdf") {
+          await loadPdf(file);
+        } else {
+          await loadImage(file);
+        }
       }
 
       if (state.watermark) renderWatermarks();
       setProgress(1);
-      setStatus("DOCUMENT_LOADED");
+      const addedPages = state.pages.length - previousPageCount;
+      setStatus(replaceDocument ? "DOCUMENT_LOADED" : "PAGES_ADDED", {count: addedPages});
     } catch (error) {
       console.error(error);
-      state.pages = [];
-      showEmptyState("OPEN_ERROR_EMPTY");
+      if (replaceDocument) {
+        state.pages = [];
+        showEmptyState("OPEN_ERROR_EMPTY");
+      }
       setProgress(0);
       setStatus("OPEN_ERROR", {detail: error.message});
     } finally {
@@ -383,7 +421,7 @@
         viewport
       }).promise;
 
-      addPage(canvas);
+      addPage(canvas, {sourceName: file.name, sourcePageNumber: pageNumber});
       setProgress(0.05 + 0.85 * pageNumber / pdf.numPages);
     }
   }
@@ -399,14 +437,14 @@
       canvas.width = image.naturalWidth;
       canvas.height = image.naturalHeight;
       canvas.getContext("2d").drawImage(image, 0, 0);
-      addPage(canvas);
+      addPage(canvas, {sourceName: file.name, sourcePageNumber: 1});
       setProgress(0.9);
     } finally {
       URL.revokeObjectURL(objectUrl);
     }
   }
 
-  function addPage(canvas) {
+  function addPage(canvas, source = {}) {
     canvas.className = "document-canvas";
 
     const shell = document.createElement("div");
@@ -418,7 +456,7 @@
     const overlay = document.createElement("div");
     overlay.className = "overlay";
 
-    const page = {canvas, overlay, rects: [], shell, wrapper};
+    const page = {canvas, overlay, rects: [], shell, wrapper, ...source};
     wrapper.classList.toggle("grayscale", state.grayscale);
     wrapper.append(canvas, overlay);
     state.pages.push(page);
@@ -1049,24 +1087,24 @@
     context.putImageData(imageData, 0, 0);
   }
 
-  async function saveDocument() {
+  async function exportDocument(format) {
     if (!state.pages.length) {
       setStatus("FIRST_UPLOAD");
       return;
     }
 
     setBusy(true);
-    setStatus("GENERATING");
+    setStatus(format === "images" ? "GENERATING_IMAGES" : "GENERATING_PDF");
     setProgress(0.05);
 
     try {
-      if (state.kind === "image") {
-        await saveImage();
+      if (format === "images") {
+        await saveImages();
       } else {
-        await savePdf();
+        await savePdfDocument();
       }
       setProgress(1);
-      setStatus("COMPLETE");
+      setStatus(format === "images" ? "IMAGES_COMPLETE" : "PDF_COMPLETE");
     } catch (error) {
       console.error(error);
       setStatus("SAVE_ERROR", {detail: error.message});
@@ -1075,14 +1113,21 @@
     }
   }
 
-  async function saveImage() {
-    const canvas = createSanitizedCanvas(state.pages[0]);
-    const mimeType = getOutputMimeType(state.originalFile.type);
-    const blob = await canvasToBlob(canvas, mimeType, 0.95);
-    download(blob, `${baseName(state.originalFile.name)}-${translate("FILE_SUFFIX")}.${extensionFor(mimeType)}`);
+  async function saveImages() {
+    const digits = Math.max(2, String(state.pages.length).length);
+
+    for (let index = 0; index < state.pages.length; index += 1) {
+      const page = state.pages[index];
+      const canvas = createSanitizedCanvas(page);
+      const blob = await canvasToBlob(canvas, "image/png");
+      const sourceName = page.sourceName || state.originalFile?.name || "safe-layer";
+      const pageNumber = String(index + 1).padStart(digits, "0");
+      download(blob, `${baseName(sourceName)}-${translate("FILE_SUFFIX")}-${pageNumber}.png`);
+      setProgress((index + 1) / state.pages.length);
+    }
   }
 
-  async function savePdf() {
+  async function savePdfDocument() {
     const {PDFDocument} = await getPdfLib();
     const document = await PDFDocument.create();
 
@@ -1096,7 +1141,8 @@
     }
 
     const bytes = await document.save();
-    const name = `${baseName(state.originalFile.name)}-${translate("FILE_SUFFIX")}.pdf`;
+    const sourceName = state.originalFile?.name || "safe-layer";
+    const name = `${baseName(sourceName)}-${translate("FILE_SUFFIX")}.pdf`;
     download(new Blob([bytes], {type: "application/pdf"}), name);
   }
 
@@ -1109,19 +1155,8 @@
     });
   }
 
-  function getOutputMimeType(inputType) {
-    if (inputType === "image/png" || inputType === "image/webp") return inputType;
-    return "image/jpeg";
-  }
-
   function baseName(name) {
     return name.replace(/\.[^.]+$/, "");
-  }
-
-  function extensionFor(mimeType) {
-    if (mimeType === "image/png") return "png";
-    if (mimeType === "image/webp") return "webp";
-    return "jpg";
   }
 
   function download(blob, name) {
@@ -1135,6 +1170,7 @@
   }
 
   elements.file.addEventListener("change", handleFileSelection);
+  elements.addFiles.addEventListener("change", handleAdditionalFileSelection);
   elements.gray.addEventListener("click", toggleGrayscale);
   elements.watermark.addEventListener("click", toggleWatermark);
   elements.watermarkText.addEventListener("input", () => {
@@ -1144,7 +1180,8 @@
     updateWatermarkWeight();
     if (state.watermark) scheduleWatermarkRender();
   });
-  elements.save.addEventListener("click", saveDocument);
+  elements.saveImages.addEventListener("click", () => exportDocument("images"));
+  elements.savePdf.addEventListener("click", () => exportDocument("pdf"));
   elements.language.addEventListener("change", (event) => applyLanguage(event.target.value));
   elements.theme.addEventListener("click", toggleTheme);
 

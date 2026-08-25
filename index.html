@@ -72,7 +72,7 @@
             Local sanitization of images and PDFs for secure document sharing.
           </p>
           <p class="quick-guide" data-i18n="QUICK_GUIDE">
-            Upload a file, use each page's tools to redact, rotate or crop it, then download a secure copy. Everything stays in your browser.
+            Upload files, add more pages, edit each one and export everything as images or one PDF. Everything stays in your browser.
           </p>
         </div>
 
@@ -92,10 +92,11 @@
         <div class="toolbar">
           <div class="toolbar-row document-controls">
             <label class="button file-button">
-              <span data-i18n="OPEN_FILE">Open file</span>
+              <span data-i18n="OPEN_FILE">Open files</span>
               <input
                 id="file"
                 type="file"
+                multiple
                 accept="image/jpeg,image/png,image/webp,application/pdf"
               >
             </label>
@@ -179,9 +180,24 @@
             <div class="empty" data-i18n="EMPTY_DOCUMENT">No document loaded.</div>
           </div>
           <div class="document-save">
-            <button id="save" class="button" type="button" data-i18n="SAVE_DOWNLOAD">
-              Save and download
-            </button>
+            <label class="button secondary file-button add-pages-button">
+              <span aria-hidden="true">+</span>
+              <span data-i18n="ADD_PAGES">Add page</span>
+              <input
+                id="add-files"
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+              >
+            </label>
+            <div class="export-actions">
+              <button id="save-images" class="button secondary" type="button" data-i18n="SAVE_IMAGES">
+                Save images
+              </button>
+              <button id="save-pdf" class="button" type="button" data-i18n="SAVE_PDF">
+                Save PDF
+              </button>
+            </div>
           </div>
         </main>
       </div>
