@@ -6,13 +6,19 @@
   const PDF_LIB_URL = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm";
   const WATERMARK_ANGLE = -28 * Math.PI / 180;
   const WATERMARK_FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+  const THUMBNAIL_MAX_WIDTH = 128;
+  const THUMBNAIL_MAX_HEIGHT = 168;
+  const THUMBNAIL_DRAG_THRESHOLD = 5;
+  const THUMBNAIL_TOUCH_DELAY = 250;
+  const THUMBNAIL_TOUCH_TOLERANCE = 8;
+  const THUMBNAIL_AUTOSCROLL_EDGE = 40;
 
   const translations = {
     en: {
       PAGE_TITLE: "Safe Layer — Document sanitizer",
       META_DESCRIPTION: "Sanitize images and PDF documents locally in your browser.",
       APP_SUBTITLE: "Local sanitization of images and PDFs for secure document sharing.",
-      QUICK_GUIDE: "Upload files, add more pages, edit each one and export everything as images or one PDF. Everything stays in your browser.",
+      QUICK_GUIDE: "Upload files, add more pages, reorder them from the page list, edit each one and export everything as images or one PDF. Everything stays in your browser.",
       LOCAL_BADGE: "Processed in your browser",
       GITHUB_KICKER: "Open source · Built by",
       GITHUB_PROFILE_LABEL: "View @davidgcs on GitHub",
@@ -40,6 +46,11 @@
       CANCEL_CROP: "Cancel crop",
       APPLY_CROP: "Apply crop",
       ADD_PAGES: "Add page",
+      PAGES_HEADING: "Pages",
+      REORDER_HINT: "Drag to reorder",
+      REORDER_KEYBOARD_HINT: "Drag to change the page order, or press Alt with the up or down arrow key.",
+      PAGE_THUMBNAIL_LABEL: "Page {page}",
+      PAGE_MOVED: "Page {from} moved to position {to}.",
       SAVE_IMAGES: "Save images",
       SAVE_PDF: "Save PDF",
       INITIAL_STATUS: "Select an image or PDF to begin.",
@@ -75,7 +86,7 @@
       PAGE_TITLE: "Safe Layer — Sanitizador de documentos",
       META_DESCRIPTION: "Sanitiza imágenes y documentos PDF de forma local en tu navegador.",
       APP_SUBTITLE: "Sanitización local de imágenes y PDF para compartir documentos de forma segura.",
-      QUICK_GUIDE: "Sube archivos, añade páginas, edita cada una y exporta todo como imágenes o en un único PDF. Todo permanece en tu navegador.",
+      QUICK_GUIDE: "Sube archivos, añade páginas, reordénalas desde la lista de páginas, edita cada una y exporta todo como imágenes o en un único PDF. Todo permanece en tu navegador.",
       LOCAL_BADGE: "Procesamiento en tu navegador",
       GITHUB_KICKER: "Código abierto · Creado por",
       GITHUB_PROFILE_LABEL: "Ver @davidgcs en GitHub",
@@ -103,6 +114,11 @@
       CANCEL_CROP: "Cancelar recorte",
       APPLY_CROP: "Aplicar recorte",
       ADD_PAGES: "Añadir página",
+      PAGES_HEADING: "Páginas",
+      REORDER_HINT: "Arrastra para reordenar",
+      REORDER_KEYBOARD_HINT: "Arrastra para cambiar el orden de las páginas o pulsa Alt con la flecha arriba o abajo.",
+      PAGE_THUMBNAIL_LABEL: "Página {page}",
+      PAGE_MOVED: "Página {from} movida a la posición {to}.",
       SAVE_IMAGES: "Guardar imágenes",
       SAVE_PDF: "Guardar PDF",
       INITIAL_STATUS: "Selecciona una imagen o PDF para comenzar.",
@@ -142,6 +158,7 @@
     file: document.querySelector("#file"),
     gray: document.querySelector("#gray"),
     language: document.querySelector("#language"),
+    pageSidebar: document.querySelector("#page-sidebar"),
     metaDescription: document.querySelector("#meta-description"),
     pages: document.querySelector("#pages"),
     progress: document.querySelector("[role='progressbar']"),
@@ -149,10 +166,12 @@
     savePdf: document.querySelector("#save-pdf"),
     status: document.querySelector("#status"),
     theme: document.querySelector("#theme"),
+    thumbnails: document.querySelector("#thumbnails"),
     watermark: document.querySelector("#watermark"),
     watermarkText: document.querySelector("#wm"),
     watermarkWeight: document.querySelector("#wm-weight"),
-    watermarkWeightValue: document.querySelector("#wm-weight-value")
+    watermarkWeightValue: document.querySelector("#wm-weight-value"),
+    workspace: document.querySelector("#workspace")
   };
 
   const state = {
@@ -174,6 +193,8 @@
 
   let pdfJsPromise = null;
   let pdfLibPromise = null;
+  let thumbnailDrag = null;
+  let suppressThumbnailClick = false;
 
   function translate(key, params = {}, language = state.language) {
     const template = translations[language]?.[key] ?? translations.en[key] ?? key;
@@ -290,6 +311,7 @@
     elements.gray.setAttribute("aria-pressed", String(state.grayscale));
     elements.watermark.textContent = translate(state.watermark ? "WATERMARK_REMOVE" : "WATERMARK_ADD");
     elements.watermark.setAttribute("aria-pressed", String(state.watermark));
+    elements.thumbnails.classList.toggle("grayscale", state.grayscale);
     updatePageActionStates();
   }
 
@@ -306,6 +328,7 @@
   }
 
   function resetDocument() {
+    cancelThumbnailDrag();
     clearCropSelection();
     state.activePage = null;
     state.cropMode = false;
@@ -315,6 +338,8 @@
     state.grayscale = true;
     state.watermark = true;
     elements.pages.replaceChildren();
+    elements.thumbnails.replaceChildren();
+    updateThumbnailSidebar();
     updateToggleLabels();
   }
 
@@ -394,6 +419,8 @@
       console.error(error);
       if (replaceDocument) {
         state.pages = [];
+        elements.thumbnails.replaceChildren();
+        updateThumbnailSidebar();
         showEmptyState("OPEN_ERROR_EMPTY");
       }
       setProgress(0);
@@ -460,6 +487,8 @@
     wrapper.classList.toggle("grayscale", state.grayscale);
     wrapper.append(canvas, overlay);
     state.pages.push(page);
+    elements.thumbnails.append(createThumbnail(page));
+    updateThumbnailSidebar();
     const actions = createPageActions(page, state.pages.length);
     shell.append(actions, wrapper);
     elements.pages.append(shell);
@@ -593,6 +622,7 @@
           setStatus("CROP_READY");
         } else {
           page.rects.push(rect);
+          renderThumbnail(page);
           updatePageActionStates();
         }
       } else {
@@ -718,7 +748,11 @@
     if (!page) return;
     state.activePage = page;
     state.pages.forEach((candidate) => {
-      candidate.wrapper.classList.toggle("selected", candidate === page);
+      const isSelected = candidate === page;
+      candidate.wrapper.classList.toggle("selected", isSelected);
+      candidate.thumbnail?.classList.toggle("selected", isSelected);
+      if (isSelected) candidate.thumbnailButton?.setAttribute("aria-current", "true");
+      else candidate.thumbnailButton?.removeAttribute("aria-current");
     });
 
     if (announce && !state.cropMode && state.redactPage !== page) {
@@ -778,6 +812,7 @@
   function clearPageRedactions(page) {
     page.rects = [];
     renderPageRedactions(page);
+    renderThumbnail(page);
     updatePageActionStates();
     selectPage(page, false);
     setStatus("PAGE_REDACTIONS_CLEARED", {page: state.pages.indexOf(page) + 1});
@@ -790,6 +825,8 @@
     setRedactMode(null);
     state.pages.splice(pageIndex, 1);
     page.shell.remove();
+    page.thumbnail.remove();
+    updateThumbnailSidebar();
 
     if (!state.pages.length) {
       state.activePage = null;
@@ -839,6 +876,7 @@
 
     context.drawImage(source, 0, 0);
     renderPageRedactions(page);
+    renderThumbnail(page);
     renderWatermarks();
     setStatus("PAGE_ROTATED", {page: state.pages.indexOf(page) + 1});
   }
@@ -867,6 +905,7 @@
     page.canvas.getContext("2d").drawImage(source, x, y, width, height, 0, 0, width, height);
     setCropMode(false);
     renderPageRedactions(page);
+    renderThumbnail(page);
     renderWatermarks();
     selectPage(page, false);
     setStatus("CROP_APPLIED", {page: state.pages.indexOf(page) + 1});
@@ -874,6 +913,10 @@
 
   function updatePageActionStates() {
     state.pages.forEach((page, index) => {
+      if (page.thumbnailButton) {
+        page.thumbnailButton.setAttribute("aria-label", translate("PAGE_THUMBNAIL_LABEL", {page: index + 1}));
+        page.thumbnailNumber.textContent = String(index + 1);
+      }
       if (!page.actions) return;
       page.actions.setAttribute("aria-label", translate("PAGE_ACTIONS_LABEL", {page: index + 1}));
       const isCropping = state.cropMode && state.cropPage === page;
@@ -934,6 +977,261 @@
       setRelativeSelectionStyle(redaction, rect);
       page.overlay.append(redaction);
     });
+  }
+
+  function updateThumbnailSidebar() {
+    const hasPages = state.pages.length > 0;
+    elements.pageSidebar.hidden = !hasPages;
+    elements.workspace.classList.toggle("has-pages", hasPages);
+  }
+
+  function createThumbnail(page) {
+    const item = document.createElement("li");
+    item.className = "thumbnail";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "thumbnail__button";
+    button.setAttribute("aria-describedby", "reorder-keyboard-hint");
+
+    const preview = document.createElement("canvas");
+    preview.className = "thumbnail__canvas";
+    preview.setAttribute("aria-hidden", "true");
+
+    const number = document.createElement("span");
+    number.className = "thumbnail__number";
+    number.setAttribute("aria-hidden", "true");
+
+    button.append(preview, number);
+    item.append(button);
+    Object.assign(page, {
+      thumbnail: item,
+      thumbnailButton: button,
+      thumbnailCanvas: preview,
+      thumbnailNumber: number
+    });
+
+    button.addEventListener("click", () => handleThumbnailClick(page));
+    button.addEventListener("keydown", (event) => handleThumbnailKeydown(event, page));
+    button.addEventListener("pointerdown", (event) => startThumbnailDrag(event, page));
+    button.addEventListener("contextmenu", (event) => {
+      if (thumbnailDrag) event.preventDefault();
+    });
+
+    renderThumbnail(page);
+    return item;
+  }
+
+  function renderThumbnail(page) {
+    const preview = page.thumbnailCanvas;
+    if (!preview) return;
+
+    const {width, height} = page.canvas;
+    const scale = Math.min(THUMBNAIL_MAX_WIDTH / width, THUMBNAIL_MAX_HEIGHT / height);
+    const cssWidth = Math.max(1, Math.round(width * scale));
+    const cssHeight = Math.max(1, Math.round(height * scale));
+    const pixelRatio = Math.min(2, window.devicePixelRatio || 1);
+
+    preview.width = Math.round(cssWidth * pixelRatio);
+    preview.height = Math.round(cssHeight * pixelRatio);
+    preview.style.width = `${cssWidth}px`;
+
+    const context = preview.getContext("2d");
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, preview.width, preview.height);
+    context.imageSmoothingQuality = "high";
+    context.drawImage(page.canvas, 0, 0, preview.width, preview.height);
+    context.fillStyle = "#000";
+    page.rects.forEach((rect) => {
+      context.fillRect(
+        rect.x * preview.width,
+        rect.y * preview.height,
+        rect.width * preview.width,
+        rect.height * preview.height
+      );
+    });
+  }
+
+  function syncPageOrder() {
+    const focused = document.activeElement;
+    state.pages.forEach((page) => {
+      elements.pages.append(page.shell);
+      elements.thumbnails.append(page.thumbnail);
+    });
+    if (focused instanceof HTMLElement && focused !== document.activeElement) {
+      focused.focus({preventScroll: true});
+    }
+    updatePageActionStates();
+  }
+
+  function movePage(page, targetIndex) {
+    const fromIndex = state.pages.indexOf(page);
+    if (fromIndex < 0 || state.processing) return;
+
+    const toIndex = Math.max(0, Math.min(state.pages.length - 1, targetIndex));
+    if (fromIndex === toIndex) {
+      syncPageOrder();
+      return;
+    }
+
+    state.pages.splice(fromIndex, 1);
+    state.pages.splice(toIndex, 0, page);
+    syncPageOrder();
+    selectPage(page, false);
+    setStatus("PAGE_MOVED", {from: fromIndex + 1, to: toIndex + 1});
+  }
+
+  function handleThumbnailClick(page) {
+    if (suppressThumbnailClick) return;
+    selectPage(page);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    page.shell.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "start"});
+  }
+
+  function handleThumbnailKeydown(event, page) {
+    if (!event.altKey || event.ctrlKey || event.metaKey) return;
+    const offset = {ArrowUp: -1, ArrowDown: 1}[event.key];
+    if (!offset) return;
+
+    event.preventDefault();
+    movePage(page, state.pages.indexOf(page) + offset);
+    page.thumbnailButton.focus({preventScroll: true});
+    page.thumbnail.scrollIntoView({block: "nearest", inline: "nearest"});
+  }
+
+  function startThumbnailDrag(event, page) {
+    if (
+      state.processing
+      || state.pages.length < 2
+      || !event.isPrimary
+      || event.button !== 0
+    ) return;
+
+    cancelThumbnailDrag();
+    thumbnailDrag = {
+      page,
+      pointerId: event.pointerId,
+      pointerType: event.pointerType,
+      startX: event.clientX,
+      startY: event.clientY,
+      started: false,
+      timer: null
+    };
+
+    // Touch drags start after a long press so a quick swipe still scrolls the list.
+    if (event.pointerType === "touch") {
+      thumbnailDrag.timer = setTimeout(beginThumbnailDrag, THUMBNAIL_TOUCH_DELAY);
+    }
+
+    window.addEventListener("pointermove", handleThumbnailPointerMove);
+    window.addEventListener("pointerup", finishThumbnailDrag);
+    window.addEventListener("pointercancel", cancelThumbnailDrag);
+  }
+
+  function beginThumbnailDrag() {
+    if (!thumbnailDrag || thumbnailDrag.started) return;
+    clearTimeout(thumbnailDrag.timer);
+    thumbnailDrag.started = true;
+    thumbnailDrag.page.thumbnail.classList.add("is-dragging");
+    elements.thumbnails.classList.add("is-sorting");
+    document.body.classList.add("is-sorting-pages");
+  }
+
+  function handleThumbnailPointerMove(event) {
+    if (!thumbnailDrag || event.pointerId !== thumbnailDrag.pointerId) return;
+
+    if (!thumbnailDrag.started) {
+      const distance = Math.hypot(
+        event.clientX - thumbnailDrag.startX,
+        event.clientY - thumbnailDrag.startY
+      );
+      if (thumbnailDrag.pointerType === "touch") {
+        if (distance > THUMBNAIL_TOUCH_TOLERANCE) cancelThumbnailDrag();
+        return;
+      }
+      if (distance < THUMBNAIL_DRAG_THRESHOLD) return;
+      beginThumbnailDrag();
+    }
+
+    event.preventDefault();
+    const horizontal = isThumbnailListHorizontal();
+    autoScrollThumbnails(event, horizontal);
+    moveDraggedThumbnail(event, horizontal);
+  }
+
+  function isThumbnailListHorizontal() {
+    return getComputedStyle(elements.thumbnails).flexDirection.startsWith("row");
+  }
+
+  function autoScrollThumbnails(event, horizontal) {
+    const list = elements.thumbnails;
+    const bounds = list.getBoundingClientRect();
+    const pointer = horizontal ? event.clientX : event.clientY;
+    const start = horizontal ? bounds.left : bounds.top;
+    const end = horizontal ? bounds.right : bounds.bottom;
+    const step = pointer < start + THUMBNAIL_AUTOSCROLL_EDGE ? -14
+      : pointer > end - THUMBNAIL_AUTOSCROLL_EDGE ? 14 : 0;
+
+    if (!step) return;
+    if (horizontal) list.scrollLeft += step;
+    else list.scrollTop += step;
+  }
+
+  function moveDraggedThumbnail(event, horizontal) {
+    const item = thumbnailDrag.page.thumbnail;
+    const items = Array.from(elements.thumbnails.children);
+    const others = items.filter((candidate) => candidate !== item);
+    const pointer = horizontal ? event.clientX : event.clientY;
+
+    let targetIndex = others.findIndex((candidate) => {
+      const bounds = candidate.getBoundingClientRect();
+      const middle = horizontal ? bounds.left + bounds.width / 2 : bounds.top + bounds.height / 2;
+      return pointer < middle;
+    });
+    if (targetIndex < 0) targetIndex = others.length;
+
+    // Move the neighbours instead of the dragged node so it never leaves the DOM mid-gesture.
+    let currentIndex = items.indexOf(item);
+    while (currentIndex < targetIndex) {
+      item.before(item.nextElementSibling);
+      currentIndex += 1;
+    }
+    while (currentIndex > targetIndex) {
+      item.after(item.previousElementSibling);
+      currentIndex -= 1;
+    }
+  }
+
+  function finishThumbnailDrag(event) {
+    if (!thumbnailDrag || event.pointerId !== thumbnailDrag.pointerId) return;
+
+    const {page, started} = thumbnailDrag;
+    endThumbnailDrag();
+    if (!started) return;
+
+    suppressThumbnailClick = true;
+    setTimeout(() => {
+      suppressThumbnailClick = false;
+    }, 0);
+    movePage(page, Array.from(elements.thumbnails.children).indexOf(page.thumbnail));
+  }
+
+  function cancelThumbnailDrag() {
+    if (!thumbnailDrag) return;
+    const wasStarted = thumbnailDrag.started;
+    endThumbnailDrag();
+    if (wasStarted) syncPageOrder();
+  }
+
+  function endThumbnailDrag() {
+    clearTimeout(thumbnailDrag.timer);
+    thumbnailDrag.page.thumbnail?.classList.remove("is-dragging");
+    elements.thumbnails.classList.remove("is-sorting");
+    document.body.classList.remove("is-sorting-pages");
+    window.removeEventListener("pointermove", handleThumbnailPointerMove);
+    window.removeEventListener("pointerup", finishThumbnailDrag);
+    window.removeEventListener("pointercancel", cancelThumbnailDrag);
+    thumbnailDrag = null;
   }
 
   function toggleGrayscale() {
@@ -1184,6 +1482,9 @@
   elements.savePdf.addEventListener("click", () => exportDocument("pdf"));
   elements.language.addEventListener("change", (event) => applyLanguage(event.target.value));
   elements.theme.addEventListener("click", toggleTheme);
+  elements.thumbnails.addEventListener("touchmove", (event) => {
+    if (thumbnailDrag?.started) event.preventDefault();
+  }, {passive: false});
 
   updateWatermarkWeight();
   applyTheme(getInitialTheme());
