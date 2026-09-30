@@ -72,7 +72,7 @@
             Local sanitization of images and PDFs for secure document sharing.
           </p>
           <p class="quick-guide" data-i18n="QUICK_GUIDE">
-            Upload files, add more pages, edit each one and export everything as images or one PDF. Everything stays in your browser.
+            Upload files, add more pages, reorder them from the page list, edit each one and export everything as images or one PDF. Everything stays in your browser.
           </p>
         </div>
 
@@ -174,7 +174,23 @@
         </div>
       </section>
 
-      <div class="workspace">
+      <div class="workspace" id="workspace">
+        <aside
+          class="card page-sidebar"
+          id="page-sidebar"
+          aria-labelledby="page-sidebar-title"
+          hidden
+        >
+          <div class="page-sidebar__header">
+            <h2 id="page-sidebar-title" data-i18n="PAGES_HEADING">Pages</h2>
+            <p class="page-sidebar__hint" data-i18n="REORDER_HINT">Drag to reorder</p>
+          </div>
+          <ol id="thumbnails" class="thumbnails grayscale"></ol>
+          <p id="reorder-keyboard-hint" class="sr-only" data-i18n="REORDER_KEYBOARD_HINT">
+            Drag to change the page order, or press Alt with the up or down arrow key.
+          </p>
+        </aside>
+
         <main class="card document-card">
           <div id="pages">
             <div class="empty" data-i18n="EMPTY_DOCUMENT">No document loaded.</div>

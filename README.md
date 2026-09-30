@@ -10,6 +10,7 @@ they are shared for government, official, or professional procedures.
 - Per-page cropping and left/right rotation for images and PDFs.
 - Explicit per-page redaction mode, reset action, and page deletion with confirmation.
 - Multi-file workspace with additional image/PDF page imports.
+- Page preview sidebar to reorder pages by drag and drop (mouse, touch long-press, or Alt + ↑/↓).
 - Export every page as an individual PNG or combine all pages into one PDF.
 - Grayscale and the localized `copy`/`copia` watermark are enabled automatically.
 - Adjustable watermark weight with a slider.
